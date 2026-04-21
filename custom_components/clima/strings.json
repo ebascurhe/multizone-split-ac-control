@@ -1,0 +1,61 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Clima",
+        "description": "Configure your multi-zone AC system with temperature and window sensors",
+        "data": {
+          "outside_temperature": "Outside Temperature Sensor (optional)"
+        }
+      },
+      "zones": {
+        "title": "Configure Zones",
+        "description": "Map your 6 zones with their respective AC units, temperature sensors, and window sensors"
+      }
+    },
+    "error": {
+      "already_configured": "Integration is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Update Configuration",
+        "description": "Update your Clima integration settings",
+        "data": {
+          "outside_temperature": "Outside Temperature Sensor"
+        }
+      }
+    }
+  },
+  "services": {
+    "set_zone_temperature": {
+      "name": "Set Zone Temperature",
+      "description": "Set the target temperature for a specific zone",
+      "fields": {
+        "zone_id": {
+          "name": "Zone ID",
+          "description": "The ID of the zone (e.g., zone_1)"
+        },
+        "temperature": {
+          "name": "Temperature",
+          "description": "Target temperature in Celsius"
+        }
+      }
+    },
+    "toggle_zone": {
+      "name": "Toggle Zone",
+      "description": "Enable or disable AC for a specific zone",
+      "fields": {
+        "zone_id": {
+          "name": "Zone ID",
+          "description": "The ID of the zone (e.g., zone_1)"
+        },
+        "enabled": {
+          "name": "Enabled",
+          "description": "Enable or disable the AC unit"
+        }
+      }
+    }
+  }
+}

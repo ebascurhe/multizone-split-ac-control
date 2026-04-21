@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clima - Energy Analytics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card h3 {
+            color: #999;
+            font-size: 0.95em;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 2.8em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .stat-subtext {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .stat-trend {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            margin-top: 10px;
+        }
+
+        .trend-up {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .trend-down {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .chart-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        .chart {
+            width: 100%;
+            height: 350px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding: 30px 20px;
+            gap: 15px;
+        }
+
+        .bar {
+            flex: 1;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            min-height: 40px;
+            transition: all 0.3s;
+        }
+
+        .bar:hover {
+            filter: brightness(1.1);
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.85em;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9em;
+        }
+
+        .zone-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .zone-stat {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .zone-stat h4 {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .zone-emoji {
+            font-size: 1.5em;
+        }
+
+        .zone-bar {
+            height: 30px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .zone-bar-value {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9em;
+            padding: 5px 10px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .zone-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .alerts {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+        }
+
+        .alert-icon {
+            font-size: 1.5em;
+            margin-top: 2px;
+        }
+
+        .alert-content h5 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .alert-content p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            font-size: 1em;
+            font-weight: 600;
+            color: #999;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart {
+                height: 250px;
+            }
+
+            .zone-comparison {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>⚡ Energy Analytics</h1>
+            <p>Real-time AC Power Consumption Monitoring</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Current Power</h3>
+                <div class="stat-value">5.02 kW</div>
+                <div class="stat-subtext">5 units active</div>
+                <div class="stat-trend trend-up">↑ 12% from yesterday</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Today's Usage</h3>
+                <div class="stat-value">29.5 kWh</div>
+                <div class="stat-subtext">Since 12:00 AM</div>
+                <div class="stat-trend trend-down">↓ 8% vs avg</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>This Month</h3>
+                <div class="stat-value">847 kWh</div>
+                <div class="stat-subtext">Avg: 28.2 kWh/day</div>
+                <div class="stat-trend trend-down">↓ 5% vs last month</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Monthly Cost</h3>
+                <div class="stat-value">$204</div>
+                <div class="stat-subtext">At $0.24/kWh</div>
+                <div class="stat-trend trend-down">↓ 6% vs last month</div>
+            </div>
+        </div>
+
+        <!-- Tabs for different time periods -->
+        <div style="background: white; border-radius: 15px; padding: 0 25px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);">
+            <div class="tabs">
+                <button class="tab active">Day</button>
+                <button class="tab">Week</button>
+                <button class="tab">Month</button>
+                <button class="tab">Year</button>
+            </div>
+
+            <!-- Daily Chart -->
+            <div style="padding-bottom: 25px;">
+                <h3 style="font-size: 1.2em; color: #333; margin-bottom: 20px;">Daily Power Usage</h3>
+                <div class="chart">
+                    <div class="bar" style="height: 25%;">
+                        <div class="bar-value">1.2 kW</div>
+                        <div class="bar-label">12 AM</div>
+                    </div>
+                    <div class="bar" style="height: 20%;">
+                        <div class="bar-value">0.9 kW</div>
+                        <div class="bar-label">4 AM</div>
+                    </div>
+                    <div class="bar" style="height: 30%;">
+                        <div class="bar-value">1.8 kW</div>
+                        <div class="bar-label">8 AM</div>
+                    </div>
+                    <div class="bar" style="height: 65%;">
+                        <div class="bar-value">4.2 kW</div>
+                        <div class="bar-label">12 PM</div>
+                    </div>
+                    <div class="bar" style="height: 75%;">
+                        <div class="bar-value">5.0 kW</div>
+                        <div class="bar-label">4 PM</div>
+                    </div>
+                    <div class="bar" style="height: 85%;">
+                        <div class="bar-value">5.5 kW</div>
+                        <div class="bar-label">8 PM</div>
+                    </div>
+                    <div class="bar" style="height: 55%;">
+                        <div class="bar-value">3.8 kW</div>
+                        <div class="bar-label">12 AM</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Zone Comparison -->
+        <div class="chart-container">
+            <h2 class="chart-title">Power Consumption by Zone</h2>
+            <div class="zone-comparison">
+                <div class="zone-stat">
+                    <h4><span class="zone-emoji">🪑</span> Living Room</h4>
+                    <div class="zone-bar" style="width: 100%;">
+                        <div class="zone-bar-value">1200W (100%)</div>
+                    </div>
+                    <div class="zone-details">
+                        <div class="detail-item">
+                            <span>Today:</span>
+                            <span class="detail-value">6.8 kWh</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>This Month:</span>
+                            <span class="detail-value">186 kWh</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Status:</span>
+                            <span class="detail-value">🟠 Cooling</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Cost Today:</span>
+                            <span class="detail-value">$1.63</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="zone-stat">
+                    <h4><span class="zone-emoji">💼</span> Office</h4>
+                    <div class="zone-bar" style="width: 87.5%;">
+                        <div class="zone-bar-value">1050W (87.5%)</div>
+                    </div>
+                    <div class="zone-details">
+                        <div class="detail-item">
+                            <span>Today:</span>
+                            <span class="detail-value">7.2 kWh</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>This Month:</span>
+                            <span class="detail-value">198 kWh</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Status:</span>
+                            <span class="detail-value">🟠 Cooling</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Cost Today:</span>
+                            <span class="detail-value">$1.73</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="zone-stat">
+                    <h4><span class="zone-emoji">🛏️</span> Master Bedroom</h4>
+                    <div class="zone-bar" style="width: 76.67%;">
+                        <div class="zone-bar-value">920W (76.67%)</div>
+                    </div>
+                    <div class="zone-details">
+                        <div class="detail-item">
+                            <span>Today:</span>
+                            <span class="detail-value">5.1 kWh</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>This Month:</span>
+                            <span class="detail-value">142 kWh</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Status:</span>
+                            <span class="detail-value">🟡 On</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Cost Today:</span>
+                            <span class="detail-value">$1.22</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="zone-stat">
+                    <h4><span class="zone-emoji">🛏️</span> Bedroom</h4>
+                    <div class="zone-bar" style="width: 70.83%;">
+                        <div class="zone-bar-value">850W (70.83%)</div>
+                    </div>
+                    <div class="zone-details">
+                        <div class="detail-item">
+                            <span>Today:</span>
+                            <span class="detail-value">4.2 kWh</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>This Month:</span>
+                            <span class="detail-value">121 kWh</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Status:</span>
+                            <span class="detail-value">🟠 Cooling</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Cost Today:</span>
+                            <span class="detail-value">$1.01</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="zone-stat">
+                    <h4><span class="zone-emoji">👥</span> Guest Room</h4>
+                    <div class="zone-bar" style="width: 0%;">
+                        <div class="zone-bar-value">0W</div>
+                    </div>
+                    <div class="zone-details">
+                        <div class="detail-item">
+                            <span>Today:</span>
+                            <span class="detail-value">0.0 kWh</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>This Month:</span>
+                            <span class="detail-value">0 kWh</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Status:</span>
+                            <span class="detail-value">🔴 Off</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Cost Today:</span>
+                            <span class="detail-value">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="zone-stat">
+                    <h4><span class="zone-emoji">🧺</span> Laundry</h4>
+                    <div class="zone-bar" style="width: 0%;">
+                        <div class="zone-bar-value">0W</div>
+                    </div>
+                    <div class="zone-details">
+                        <div class="detail-item">
+                            <span>Today:</span>
+                            <span class="detail-value">0.0 kWh</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>This Month:</span>
+                            <span class="detail-value">0 kWh</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Status:</span>
+                            <span class="detail-value">🔴 Off</span>
+                        </div>
+                        <div class="detail-item">
+                            <span>Cost Today:</span>
+                            <span class="detail-value">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts & Insights -->
+        <div class="alerts">
+            <h2 style="color: #333; margin-bottom: 20px; font-size: 1.5em;">💡 Insights & Alerts</h2>
+
+            <div class="alert-item">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-content">
+                    <h5>High Peak Consumption</h5>
+                    <p>Living room is consuming 1200W while cooling. Consider raising setpoint by 1-2°C to reduce consumption.</p>
+                </div>
+            </div>
+
+            <div class="alert-item" style="background: #e8f5e9; border-left-color: #4caf50;">
+                <div class="alert-icon">✅</div>
+                <div class="alert-content">
+                    <h5>Energy Efficient Day</h5>
+                    <p>Today's usage is 8% below average. Great job! Window open detection is working effectively.</p>
+                </div>
+            </div>
+
+            <div class="alert-item">
+                <div class="alert-icon">💡</div>
+                <div class="alert-content">
+                    <h5>Optimization Tip</h5>
+                    <p>Turning off AC in Guest Room and Laundry during working hours could save ~£15/month.</p>
+                </div>
+            </div>
+
+            <div class="alert-item" style="background: #e3f2fd; border-left-color: #2196f3;">
+                <div class="alert-icon">📊</div>
+                <div class="alert-content">
+                    <h5>Monthly Forecast</h5>
+                    <p>Based on current usage patterns, monthly consumption will be ~850 kWh (~$204 at current rates).</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Clima v0.1.0 • Energy consumption data updates every 30 seconds</p>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

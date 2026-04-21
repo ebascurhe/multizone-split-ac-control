@@ -1,0 +1,105 @@
+# Example Automations for Clima Integration
+# Add these to your automations.yaml
+
+# Turn off AC when window opens (Zone 1 example)
+- id: zona1_window_open_ac_off
+  alias: "Zone 1: Turn off AC when window opens"
+  trigger:
+    platform: state
+    entity_id: binary_sensor.zone_1_window
+    to: "on"
+  action:
+    service: climate.turn_off
+    target:
+      entity_id: climate.zone_1_ac
+
+# Turn AC back on when window closes (with delay)
+- id: zona1_window_close_ac_on
+  alias: "Zone 1: Turn on AC when window closes"
+  trigger:
+    platform: state
+    entity_id: binary_sensor.zone_1_window
+    to: "off"
+    for:
+      minutes: 2
+  action:
+    service: climate.turn_on
+    target:
+      entity_id: climate.zone_1_ac
+
+# Adjust temperature based on outside temperature
+- id: adjust_temp_outside
+  alias: "Adjust AC setpoint based on outside temperature"
+  trigger:
+    platform: state
+    entity_id: sensor.outside_temperature
+  condition:
+    - condition: numeric_state
+      entity_id: sensor.outside_temperature
+      above: 28
+  action:
+    service: climate.set_temperature
+    target:
+      entity_id:
+        - climate.zone_1_ac
+        - climate.zone_2_ac
+        - climate.zone_3_ac
+        - climate.zone_4_ac
+        - climate.zone_5_ac
+        - climate.zone_6_ac
+    data:
+      temperature: 22
+
+# Turn off all ACs if all windows are open
+- id: all_windows_open_all_ac_off
+  alias: "Turn off all ACs if all windows open"
+  trigger:
+    platform: state
+    entity_id:
+      - binary_sensor.zone_1_window
+      - binary_sensor.zone_2_window
+      - binary_sensor.zone_3_window
+      - binary_sensor.zone_4_window
+      - binary_sensor.zone_5_window
+      - binary_sensor.zone_6_window
+  condition:
+    - condition: state
+      entity_id: binary_sensor.zone_1_window
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.zone_2_window
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.zone_3_window
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.zone_4_window
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.zone_5_window
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.zone_6_window
+      state: "on"
+  action:
+    service: homeassistant.turn_off
+    target:
+      entity_id:
+        - climate.zone_1_ac
+        - climate.zone_2_ac
+        - climate.zone_3_ac
+        - climate.zone_4_ac
+        - climate.zone_5_ac
+        - climate.zone_6_ac
+
+# Notify if temperature differs significantly from setpoint
+- id: temp_difference_alert
+  alias: "Alert if zone temperature deviates from setpoint"
+  trigger:
+    platform: numeric_state
+    entity_id: sensor.zone_1_temperature
+    above: 25  # Adjust threshold as needed
+  action:
+    service: notify.notify
+    data:
+      message: "Zone 1 temperature is {{ states('sensor.zone_1_temperature') }}°C, setpoint is {{ state_attr('climate.zone_1_ac', 'temperature') }}°C"

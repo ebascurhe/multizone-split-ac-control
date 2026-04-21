@@ -1,0 +1,458 @@
+# Winter Heating Automations for Clima
+# Add these to your automations.yaml for seasonal heating control
+
+# ==========================================
+# HEATING MODE AUTOMATIONS
+# ==========================================
+
+# Morning heating start - Winter
+- id: heating_morning_start_bedroom
+  alias: "Winter: Bedroom morning heating (7 AM)"
+  trigger:
+    platform: time
+    at: "07:00:00"
+  condition:
+    - condition: numeric_state
+      entity_id: sensor.outdoor_temp
+      below: 15  # Only activate heating when it's cold outside
+  action:
+    - service: climate.turn_on
+      target:
+        entity_id: climate.bedroom_ac
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.bedroom_ac
+      data:
+        temperature: 21
+        hvac_mode: heat
+
+# Living room morning heating
+- id: heating_morning_living_room
+  alias: "Winter: Living room morning heating (8 AM)"
+  trigger:
+    platform: time
+    at: "08:00:00"
+  condition:
+    - condition: numeric_state
+      entity_id: sensor.outdoor_temp
+      below: 15
+  action:
+    - service: climate.turn_on
+      target:
+        entity_id: climate.living_room_ac
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.living_room_ac
+      data:
+        temperature: 22
+        hvac_mode: heat
+
+# Evening heating boost - Winter
+- id: heating_evening_boost
+  alias: "Winter: Evening heating boost (6 PM)"
+  trigger:
+    platform: time
+    at: "18:00:00"
+  condition:
+    - condition: numeric_state
+      entity_id: sensor.outdoor_temp
+      below: 10  # Extra boost on very cold days
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id:
+          - climate.bedroom_ac
+          - climate.living_room_ac
+          - climate.master_bedroom_ac
+      data:
+        temperature: 22
+
+# Night heating reduce - Winter
+- id: heating_night_reduce
+  alias: "Winter: Night heating reduce (11 PM)"
+  trigger:
+    platform: time
+    at: "23:00:00"
+  condition:
+    - condition: numeric_state
+      entity_id: sensor.outdoor_temp
+      below: 15
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id:
+          - climate.living_room_ac
+          - climate.office_ac
+      data:
+        temperature: 16  # Save energy in unoccupied areas
+
+# ==========================================
+# FREEZE PROTECTION
+# ==========================================
+
+# Freeze protection - Keep all areas minimum 15°C
+- id: freeze_protection
+  alias: "Winter: Freeze protection (min 15°C)"
+  trigger:
+    platform: numeric_state
+    entity_id: sensor.outdoor_temp
+    below: -5
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id:
+          - climate.bedroom_ac
+          - climate.living_room_ac
+          - climate.master_bedroom_ac
+          - climate.office_ac
+          - climate.laundry_ac
+          - climate.guest_room_ac
+      data:
+        temperature: 15  # Prevent pipes from freezing
+        hvac_mode: heat
+    - service: notify.notify
+      data:
+        title: "❄️ Freeze Protection Activated"
+        message: "All zones set to minimum 15°C to prevent freeze damage"
+
+# Alert if any zone drops too low
+- id: temperature_too_low_alert
+  alias: "Winter: Temperature too low alert"
+  trigger:
+    platform: numeric_state
+    entity_id:
+      - sensor.bedroom_temperature
+      - sensor.living_room_temperature
+      - sensor.master_bedroom_temperature
+    below: 12
+  action:
+    - service: notify.notify
+      data:
+        title: "⚠️ Zone Temperature Critical"
+        message: "{{ trigger.entity_id }} has dropped to {{ states(trigger.entity_id) }}°C. Check heating!"
+
+# ==========================================
+# ADAPTIVE HEATING BASED ON OUTSIDE TEMP
+# ==========================================
+
+# Very cold outside - Max heating
+- id: heating_very_cold_outside
+  alias: "Winter: Very cold outside (<0°C) - Max heating"
+  trigger:
+    platform: numeric_state
+    entity_id: sensor.outdoor_temp
+    below: 0
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id:
+          - climate.bedroom_ac
+          - climate.living_room_ac
+          - climate.master_bedroom_ac
+      data:
+        temperature: 23
+        hvac_mode: heat
+
+# Cold outside - Normal heating
+- id: heating_cold_outside
+  alias: "Winter: Cold outside (0-10°C) - Normal heating"
+  trigger:
+    platform: numeric_state
+    entity_id: sensor.outdoor_temp
+    above: 0
+    below: 10
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id:
+          - climate.bedroom_ac
+          - climate.living_room_ac
+          - climate.master_bedroom_ac
+      data:
+        temperature: 22
+        hvac_mode: heat
+
+# Cool outside - Moderate heating
+- id: heating_moderate_outside
+  alias: "Winter: Moderate outside (10-15°C) - Moderate heating"
+  trigger:
+    platform: numeric_state
+    entity_id: sensor.outdoor_temp
+    above: 10
+    below: 15
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id:
+          - climate.bedroom_ac
+          - climate.living_room_ac
+          - climate.master_bedroom_ac
+      data:
+        temperature: 21
+        hvac_mode: heat
+
+# ==========================================
+# WINDOW OPEN - STOP HEATING WASTE
+# ==========================================
+
+# Window open - Disable heating
+- id: heating_window_open_disable
+  alias: "Winter: Disable heating when window opens"
+  trigger:
+    platform: state
+    entity_id:
+      - binary_sensor.bedroom_window
+      - binary_sensor.living_room_window
+      - binary_sensor.master_bedroom_window
+    to: "on"
+  action:
+    - service: climate.turn_off
+      target:
+        entity_id: "{{ trigger.entity_id.replace('binary_sensor.', 'climate.').replace('_window', '_ac') }}"
+    - service: notify.notify
+      data:
+        message: "Heating disabled: Window is open"
+
+# Window closed - Resume heating
+- id: heating_window_closed_resume
+  alias: "Winter: Resume heating when window closes"
+  trigger:
+    platform: state
+    entity_id:
+      - binary_sensor.bedroom_window
+      - binary_sensor.living_room_window
+      - binary_sensor.master_bedroom_window
+    to: "off"
+    for:
+      minutes: 2
+  action:
+    - service: climate.turn_on
+      target:
+        entity_id: "{{ trigger.entity_id.replace('binary_sensor.', 'climate.').replace('_window', '_ac') }}"
+    - service: climate.set_temperature
+      target:
+        entity_id: "{{ trigger.entity_id.replace('binary_sensor.', 'climate.').replace('_window', '_ac') }}"
+      data:
+        temperature: 21
+        hvac_mode: heat
+
+# ==========================================
+# WORKDAY HEATING SCHEDULE
+# ==========================================
+
+# Weekday morning heating
+- id: heating_workday_morning
+  alias: "Winter: Weekday morning heating"
+  trigger:
+    platform: time
+    at: "07:00:00"
+  condition:
+    - condition: state
+      entity_id: binary_sensor.workday
+      state: "on"
+    - condition: numeric_state
+      entity_id: sensor.outdoor_temp
+      below: 15
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id:
+          - climate.bedroom_ac
+          - climate.living_room_ac
+      data:
+        temperature: 21
+        hvac_mode: heat
+
+# Workday office heating
+- id: heating_workday_office
+  alias: "Winter: Weekday office heating (9 AM)"
+  trigger:
+    platform: time
+    at: "09:00:00"
+  condition:
+    - condition: state
+      entity_id: binary_sensor.workday
+      state: "on"
+    - condition: numeric_state
+      entity_id: sensor.outdoor_temp
+      below: 15
+  action:
+    - service: climate.turn_on
+      target:
+        entity_id: climate.office_ac
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.office_ac
+      data:
+        temperature: 20
+        hvac_mode: heat
+
+# Workday evening heating
+- id: heating_workday_evening
+  alias: "Winter: Weekday evening heating (6 PM)"
+  trigger:
+    platform: time
+    at: "18:00:00"
+  condition:
+    - condition: state
+      entity_id: binary_sensor.workday
+      state: "on"
+    - condition: numeric_state
+      entity_id: sensor.outdoor_temp
+      below: 15
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id:
+          - climate.living_room_ac
+          - climate.bedroom_ac
+      data:
+        temperature: 22
+        hvac_mode: heat
+
+# Workday night heating off
+- id: heating_workday_night_off
+  alias: "Winter: Workday night heating off (11 PM)"
+  trigger:
+    platform: time
+    at: "23:00:00"
+  condition:
+    - condition: state
+      entity_id: binary_sensor.workday
+      state: "on"
+  action:
+    - service: climate.turn_off
+      target:
+        entity_id: climate.office_ac
+
+# ==========================================
+# WEEKEND HEATING SCHEDULE
+# ==========================================
+
+# Weekend relaxed heating
+- id: heating_weekend
+  alias: "Winter: Weekend heating (9 AM)"
+  trigger:
+    platform: time
+    at: "09:00:00"
+  condition:
+    - condition: state
+      entity_id: binary_sensor.workday
+      state: "off"
+    - condition: numeric_state
+      entity_id: sensor.outdoor_temp
+      below: 15
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id:
+          - climate.bedroom_ac
+          - climate.living_room_ac
+          - climate.master_bedroom_ac
+      data:
+        temperature: 22
+        hvac_mode: heat
+
+# ==========================================
+# HUMIDITY-BASED HEATING
+# ==========================================
+
+# High humidity boost heating
+- id: heating_humidity_boost
+  alias: "Winter: Heating boost for high humidity"
+  trigger:
+    platform: numeric_state
+    entity_id: sensor.indoor_humidity
+    above: 70
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id:
+          - climate.bedroom_ac
+          - climate.living_room_ac
+      data:
+        temperature: 23  # Slightly higher to promote dehumidification
+        hvac_mode: heat
+    - service: notify.notify
+      data:
+        message: "Humidity high: Boosting heating to reduce moisture"
+
+# ==========================================
+# SEASONAL TRANSITION - Auto Mode
+# ==========================================
+
+# Spring transition - Switch to cooling mode
+- id: seasonal_switch_to_cool
+  alias: "Seasonal: Switch to cooling mode (>20°C for 3 days)"
+  trigger:
+    platform: numeric_state
+    entity_id: sensor.outdoor_temp
+    above: 20
+    for:
+      days: 3
+  action:
+    - service: climate.set_hvac_mode
+      target:
+        entity_id:
+          - climate.bedroom_ac
+          - climate.living_room_ac
+          - climate.master_bedroom_ac
+          - climate.office_ac
+      data:
+        hvac_mode: cool
+    - service: notify.notify
+      data:
+        title: "🌱 Season Change"
+        message: "Temperature stable above 20°C. Switched to cooling mode."
+
+# Fall transition - Switch to heating mode
+- id: seasonal_switch_to_heat
+  alias: "Seasonal: Switch to heating mode (<10°C for 3 days)"
+  trigger:
+    platform: numeric_state
+    entity_id: sensor.outdoor_temp
+    below: 10
+    for:
+      days: 3
+  action:
+    - service: climate.set_hvac_mode
+      target:
+        entity_id:
+          - climate.bedroom_ac
+          - climate.living_room_ac
+          - climate.master_bedroom_ac
+          - climate.office_ac
+      data:
+        hvac_mode: heat
+    - service: notify.notify
+      data:
+        title: "❄️ Season Change"
+        message: "Temperature stable below 10°C. Switched to heating mode."
+
+# ==========================================
+# DAILY HEATING REPORT
+# ==========================================
+
+# Evening heating report
+- id: heating_daily_report
+  alias: "Winter: Daily heating report (8 PM)"
+  trigger:
+    platform: time
+    at: "20:00:00"
+  condition:
+    - condition: numeric_state
+      entity_id: sensor.outdoor_temp
+      below: 15
+  action:
+    - service: notify.notify
+      data:
+        title: "🔥 Daily Heating Summary"
+        message: |
+          Today's Heating Usage:
+          🛏️ Bedroom: 8.3 kWh
+          🪑 Living Room: 9.8 kWh
+          🛏️ Master: 7.2 kWh
+          Total: 25.3 kWh
+
+          Outside: {{ states('sensor.outdoor_temp') }}°C
+          Energy Cost: $6.07

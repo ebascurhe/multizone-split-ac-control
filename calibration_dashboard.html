@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clima - Temperature Calibration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .control-group input,
+        .control-group select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        .calibration-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .calibration-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .card-emoji {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-learning {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .status-locked {
+            background: #f3e5f5;
+            color: #6a1b9a;
+        }
+
+        .status-ready {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .metric {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .metric-label {
+            font-size: 0.85em;
+            color: #999;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .metric-unit {
+            font-size: 0.9em;
+            color: #999;
+            margin-left: 5px;
+        }
+
+        .metric-range {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .card-actions button {
+            flex: 1;
+            padding: 10px;
+            font-size: 0.9em;
+        }
+
+        .learning-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .learning-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ccc;
+            animation: pulse 1.5s infinite;
+        }
+
+        .learning-dot.active {
+            background: #4caf50;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .info-box {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .info-box h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .info-box p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .info-box ul {
+            color: #666;
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .process-steps {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .step {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .step-desc {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .alert {
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            color: #1565c0;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+
+        .alert-warning {
+            background: #fff3e0;
+            border-color: #ff9800;
+            color: #e65100;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .calibration-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .control-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-group {
+                flex-direction: column;
+            }
+
+            .card-actions {
+                flex-direction: column;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎯 Temperature Calibration</h1>
+            <p>Smart Learning System for AC Temperature Offset</p>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <div class="control-row">
+                <div class="control-group">
+                    <label>Learning Status:</label>
+                    <input type="checkbox" id="learningToggle" checked onchange="toggleLearning()">
+                    <span id="learningStatus" class="learning-indicator">
+                        <span class="learning-dot active"></span>
+                        <span>Active</span>
+                    </span>
+                </div>
+                <div class="control-group">
+                    <label>Tolerance:</label>
+                    <input type="number" id="toleranceInput" value="2" min="0.5" max="5" step="0.1" onchange="setTolerance(this.value)">
+                    <span>°C</span>
+                </div>
+                <button class="btn btn-secondary" onclick="resetAll()">Reset All</button>
+            </div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="info-box">
+            <h2>ℹ️ How Temperature Calibration Works</h2>
+            <p>
+                This system automatically learns the temperature offset for each zone by comparing your AC unit's setpoint
+                with an external temperature sensor. Once learned, it automatically adjusts the AC setpoint so your external
+                sensor reaches the target temperature.
+            </p>
+
+            <div class="process-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div class="step-title">Set Target Temperature</div>
+                        <div class="step-desc">You set the desired temperature (e.g., 22°C) on the AC unit or dashboard</div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div class="step-title">System Observes Difference</div>
+                        <div class="step-desc">The system compares the setpoint with your external sensor reading</div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div class="step-title">Learning Phase</div>
+                        <div class="step-desc">Over 10+ samples, the system calculates the average offset for that zone</div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <div class="step-title">Auto Adjustment</div>
+                        <div class="step-desc">Once learned, the system automatically adjusts AC setpoint to reach your target temp</div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <div class="step-title">Lock Calibration</div>
+                        <div class="step-desc">Lock the calibration to prevent further learning and keep settings consistent</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info" style="margin-top: 20px;">
+                <strong>💡 Tip:</strong> The system is designed to stay within ±2°C tolerance. If a zone is consistently off by more
+                than 2°C, learning will continue until it reaches the target. Once locked, manual adjustments won't trigger learning.
+            </div>
+        </div>
+
+        <!-- Calibration Cards -->
+        <h2 style="color: white; margin-bottom: 20px; font-size: 1.8em;">Zone Calibration Data</h2>
+        <div class="calibration-grid">
+            <!-- Zone 1 -->
+            <div class="calibration-card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-emoji">🛏️</span>
+                        <span class="card-title">Bedroom</span>
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Current Offset</div>
+                    <div class="metric-value">
+                        +0.5
+                        <span class="metric-unit">°C</span>
+                    </div>
+                    <div class="metric-range">AC: 22.5°C → External: 22°C</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Status</div>
+                    <div class="metric-value" style="font-size: 1.2em;">✅ Calibrated</div>
+                    <div class="metric-range">8 samples | Locked: No</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Range</div>
+                    <div style="font-size: 0.9em; color: #666;">
+                        Min: +0.0°C | Max: +1.2°C | Avg: +0.5°C
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="btn btn-secondary" onclick="lockCalibration('bedroom')">Lock</button>
+                    <button class="btn btn-danger" onclick="resetCalibration('bedroom')">Reset</button>
+                </div>
+            </div>
+
+            <!-- Zone 2 -->
+            <div class="calibration-card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-emoji">🪑</span>
+                        <span class="card-title">Living Room</span>
+                    </div>
+                    <span class="status-badge status-learning">Learning...</span>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Current Offset</div>
+                    <div class="metric-value">
+                        -1.2
+                        <span class="metric-unit">°C</span>
+                    </div>
+                    <div class="metric-range">AC: 20.8°C → External: 22°C</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Status</div>
+                    <div class="metric-value" style="font-size: 1.2em;">
+                        <span class="learning-indicator">
+                            <span class="learning-dot active"></span>
+                            Learning...
+                        </span>
+                    </div>
+                    <div class="metric-range">5 samples | Locked: No</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Range</div>
+                    <div style="font-size: 0.9em; color: #666;">
+                        Min: -0.8°C | Max: -1.5°C | Avg: -1.2°C
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="btn btn-secondary" onclick="lockCalibration('living')">Lock</button>
+                    <button class="btn btn-danger" onclick="resetCalibration('living')">Reset</button>
+                </div>
+            </div>
+
+            <!-- Zone 3 -->
+            <div class="calibration-card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-emoji">🛏️</span>
+                        <span class="card-title">Master Bedroom</span>
+                    </div>
+                    <span class="status-badge status-locked">Locked</span>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Current Offset</div>
+                    <div class="metric-value">
+                        +0.8
+                        <span class="metric-unit">°C</span>
+                    </div>
+                    <div class="metric-range">AC: 21.8°C → External: 21°C</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Status</div>
+                    <div class="metric-value" style="font-size: 1.2em;">🔒 Locked</div>
+                    <div class="metric-range">12 samples | Last: 2 hours ago</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Range</div>
+                    <div style="font-size: 0.9em; color: #666;">
+                        Min: +0.5°C | Max: +1.0°C | Avg: +0.8°C
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="btn btn-secondary" onclick="unlockCalibration('master')">Unlock</button>
+                    <button class="btn btn-danger" onclick="resetCalibration('master')">Reset</button>
+                </div>
+            </div>
+
+            <!-- Zone 4 -->
+            <div class="calibration-card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-emoji">💼</span>
+                        <span class="card-title">Office</span>
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Current Offset</div>
+                    <div class="metric-value">
+                        -0.3
+                        <span class="metric-unit">°C</span>
+                    </div>
+                    <div class="metric-range">AC: 21.7°C → External: 22°C</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Status</div>
+                    <div class="metric-value" style="font-size: 1.2em;">✅ Calibrated</div>
+                    <div class="metric-range">6 samples | Locked: No</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Range</div>
+                    <div style="font-size: 0.9em; color: #666;">
+                        Min: -0.1°C | Max: -0.5°C | Avg: -0.3°C
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="btn btn-secondary" onclick="lockCalibration('office')">Lock</button>
+                    <button class="btn btn-danger" onclick="resetCalibration('office')">Reset</button>
+                </div>
+            </div>
+
+            <!-- Zone 5 -->
+            <div class="calibration-card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-emoji">👥</span>
+                        <span class="card-title">Guest Room</span>
+                    </div>
+                    <span class="status-badge" style="background: #e0e0e0; color: #666;">Not Calibrated</span>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Current Offset</div>
+                    <div class="metric-value">
+                        0.0
+                        <span class="metric-unit">°C</span>
+                    </div>
+                    <div class="metric-range">No data yet</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Status</div>
+                    <div class="metric-value" style="font-size: 1.2em;">⏳ Waiting</div>
+                    <div class="metric-range">0 samples | Ready to learn</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Action Needed</div>
+                    <div style="font-size: 0.9em; color: #666;">
+                        Enable learning and run AC to collect calibration data
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="btn btn-secondary" onclick="startCalibration('guest')" style="background: #4caf50; color: white;">Start Learning</button>
+                </div>
+            </div>
+
+            <!-- Zone 6 -->
+            <div class="calibration-card">
+                <div class="card-header">
+                    <div>
+                        <span class="card-emoji">🧺</span>
+                        <span class="card-title">Laundry</span>
+                    </div>
+                    <span class="status-badge status-learning">Learning...</span>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Current Offset</div>
+                    <div class="metric-value">
+                        +2.1
+                        <span class="metric-unit">°C</span>
+                    </div>
+                    <div class="metric-range">AC: 24.1°C → External: 22°C</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Status</div>
+                    <div class="metric-value" style="font-size: 1.2em;">
+                        <span class="learning-indicator">
+                            <span class="learning-dot active"></span>
+                            Adjusting...
+                        </span>
+                    </div>
+                    <div class="metric-range">9 samples | Locked: No</div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">Range</div>
+                    <div style="font-size: 0.9em; color: #666;">
+                        Min: +1.5°C | Max: +2.3°C | Avg: +2.1°C
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="btn btn-secondary" onclick="lockCalibration('laundry')">Lock</button>
+                    <button class="btn btn-danger" onclick="resetCalibration('laundry')">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips Section -->
+        <div class="info-box">
+            <h2>💡 Tips for Best Calibration</h2>
+            <ul>
+                <li><strong>Run AC continuously:</strong> Let AC run for 30+ minutes to establish offset pattern</li>
+                <li><strong>Avoid rapid changes:</strong> Don't change setpoint too frequently during learning</li>
+                <li><strong>Place sensor correctly:</strong> Ensure external sensor is in the zone (not in AC outlet)</li>
+                <li><strong>Check sensor accuracy:</strong> Compare external sensor with other thermometers</li>
+                <li><strong>Lock when stable:</strong> After calibration is consistent, lock to prevent drift</li>
+                <li><strong>Seasonal check:</strong> Recalibrate seasonally as AC efficiency changes</li>
+            </ul>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Clima v0.1.0 • Smart Temperature Calibration System</p>
+        </div>
+    </div>
+
+    <script>
+        function toggleLearning() {
+            const toggle = document.getElementById('learningToggle');
+            const status = document.getElementById('learningStatus');
+            if (toggle.checked) {
+                status.innerHTML = '<span class="learning-dot active"></span><span>Active</span>';
+                alert('Learning mode enabled. System will now collect calibration data.');
+            } else {
+                status.innerHTML = '<span class="learning-dot"></span><span>Disabled</span>';
+                alert('Learning mode disabled. No further calibration will occur.');
+            }
+        }
+
+        function setTolerance(value) {
+            alert(`Tolerance set to ±${value}°C. Zones outside this range will continue learning.`);
+        }
+
+        function lockCalibration(zone) {
+            alert(`${zone} calibration locked. This zone will no longer learn new offsets.`);
+        }
+
+        function unlockCalibration(zone) {
+            alert(`${zone} calibration unlocked. Learning will resume.`);
+        }
+
+        function resetCalibration(zone) {
+            if (confirm(`Reset calibration for ${zone}? This cannot be undone.`)) {
+                alert(`${zone} calibration reset. Learning will start from scratch.`);
+            }
+        }
+
+        function startCalibration(zone) {
+            alert(`Starting calibration for ${zone}. Turn on the AC unit and wait for data collection.`);
+        }
+
+        function resetAll() {
+            if (confirm('Reset ALL calibrations? This cannot be undone.')) {
+                alert('All calibrations have been reset. Learning will start from scratch for all zones.');
+            }
+        }
+    </script>
+</body>
+</html>

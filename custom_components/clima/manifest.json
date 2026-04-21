@@ -1,0 +1,13 @@
+{
+  "manifest_version": 1,
+  "domain": "clima",
+  "name": "Clima - Multi-Zone AC Controller",
+  "codeowners": ["@estebanbascur"],
+  "config_flow": true,
+  "documentation": "https://github.com/estebanbascur/clima",
+  "homekit": {},
+  "issue_tracker": "https://github.com/estebanbascur/clima/issues",
+  "requirements": [],
+  "version": "0.1.0",
+  "iot_class": "local_polling"
+}

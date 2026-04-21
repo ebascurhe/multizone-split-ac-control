@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clima - Multi-Zone AC Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .outside-temp {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .outside-temp-card {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            color: white;
+        }
+
+        .outside-temp-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .outside-temp-value {
+            font-size: 3em;
+            font-weight: bold;
+        }
+
+        .zones-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .zone-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .zone-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .zone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .zone-name {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .zone-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-on {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status-off {
+            background: #f44336;
+            color: white;
+        }
+
+        .status-cooling {
+            background: #2196f3;
+            color: white;
+        }
+
+        .status-heating {
+            background: #ff6f00;
+            color: white;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .mode-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .mode-btn.heating {
+            color: #ff6f00;
+        }
+
+        .mode-btn.heating.active {
+            background: #ff6f00;
+            border-color: #ff6f00;
+        }
+
+        .mode-btn.cooling {
+            color: #2196f3;
+        }
+
+        .mode-btn.cooling.active {
+            background: #2196f3;
+            border-color: #2196f3;
+        }
+
+        .thermostat {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .temp-display {
+            text-align: center;
+            flex: 1;
+        }
+
+        .current-temp {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .temp-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .btn-plus {
+            background: #4caf50;
+            color: white;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .btn-plus:hover {
+            background: #45a049;
+        }
+
+        .btn-minus {
+            background: #ff9800;
+            color: white;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .btn-minus:hover {
+            background: #e68900;
+        }
+
+        .btn-toggle {
+            background: #667eea;
+            color: white;
+            padding: 8px 20px;
+            margin-left: 10px;
+        }
+
+        .btn-toggle:hover {
+            background: #5568d3;
+        }
+
+        .setpoint {
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .sensors {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .sensor {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .sensor-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .sensor-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .sensor-icon {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .window-open {
+            background: #ffebee !important;
+            border-left: 4px solid #f44336;
+        }
+
+        .window-closed {
+            background: #e8f5e9 !important;
+            border-left: 4px solid #4caf50;
+        }
+
+        .window-status {
+            color: #f44336;
+            font-weight: 600;
+        }
+
+        .window-closed .window-status {
+            color: #4caf50;
+        }
+
+        .power-active {
+            background: #fff3e0 !important;
+            border-left: 4px solid #ff9800 !important;
+        }
+
+        .power-inactive {
+            background: #e8f5e9 !important;
+            border-left: 4px solid #4caf50 !important;
+        }
+
+        .power-high {
+            background: #ffebee !important;
+            border-left: 4px solid #f44336 !important;
+        }
+
+        @media (max-width: 1200px) {
+            .sensors {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .sensors {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .automations {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .automations h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .automation-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .automation-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .automation-text {
+            flex: 1;
+        }
+
+        .automation-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .automation-desc {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .toggle-switch {
+            width: 50px;
+            height: 28px;
+            background: #ccc;
+            border-radius: 14px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #4caf50;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 12px;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            left: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .zones-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .thermostat {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .controls {
+                justify-content: center;
+                width: 100%;
+            }
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🌡️ Clima Dashboard</h1>
+            <p>Multi-Zone AC Control System</p>
+        </div>
+
+        <!-- Outside Temperature -->
+        <div class="outside-temp">
+            <div class="outside-temp-card">
+                <div class="outside-temp-label">Outside Temperature</div>
+                <div class="outside-temp-value">28°C</div>
+            </div>
+        </div>
+
+        <!-- Zones Grid -->
+        <div class="zones-grid">
+            <!-- Zone 1 -->
+            <div class="zone-card">
+                <div class="zone-header">
+                    <div class="zone-name">🛏️ Bedroom</div>
+                    <div class="zone-status status-cooling">❄️ Cooling</div>
+                </div>
+
+                <div class="mode-selector">
+                    <button class="mode-btn cooling active" onclick="switchMode(this, 'cooling')">❄️ Cool</button>
+                    <button class="mode-btn heating" onclick="switchMode(this, 'heating')">🔥 Heat</button>
+                </div>
+
+                <div class="thermostat">
+                    <div class="temp-display">
+                        <div class="current-temp">23.5°C</div>
+                        <div class="temp-label">Current</div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn btn-minus">−</button>
+                        <div class="setpoint">22°C</div>
+                        <button class="btn btn-plus">+</button>
+                        <button class="btn btn-toggle">OFF</button>
+                    </div>
+                </div>
+
+                <div class="sensors">
+                    <div class="sensor">
+                        <div class="sensor-icon">🌡️</div>
+                        <div class="sensor-label">Temperature</div>
+                        <div class="sensor-value">23.5°C</div>
+                    </div>
+                    <div class="sensor window-closed">
+                        <div class="sensor-icon">🪟</div>
+                        <div class="sensor-label">Window</div>
+                        <div class="sensor-value window-status">Closed</div>
+                    </div>
+                    <div class="sensor power-active">
+                        <div class="sensor-icon">⚡</div>
+                        <div class="sensor-label">Power</div>
+                        <div class="sensor-value">850W</div>
+                    </div>
+                    <div class="sensor">
+                        <div class="sensor-icon">📊</div>
+                        <div class="sensor-label">Today</div>
+                        <div class="sensor-value">4.2 kWh</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zone 2 -->
+            <div class="zone-card">
+                <div class="zone-header">
+                    <div class="zone-name">🪑 Living Room</div>
+                    <div class="zone-status status-cooling">Cooling</div>
+                </div>
+
+                <div class="thermostat">
+                    <div class="temp-display">
+                        <div class="current-temp">24.2°C</div>
+                        <div class="temp-label">Current</div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn btn-minus">−</button>
+                        <div class="setpoint">22°C</div>
+                        <button class="btn btn-plus">+</button>
+                        <button class="btn btn-toggle">OFF</button>
+                    </div>
+                </div>
+
+                <div class="sensors">
+                    <div class="sensor">
+                        <div class="sensor-icon">🌡️</div>
+                        <div class="sensor-label">Temperature</div>
+                        <div class="sensor-value">24.2°C</div>
+                    </div>
+                    <div class="sensor window-open">
+                        <div class="sensor-icon">🪟</div>
+                        <div class="sensor-label">Window</div>
+                        <div class="sensor-value window-status">Open</div>
+                    </div>
+                    <div class="sensor power-high">
+                        <div class="sensor-icon">⚡</div>
+                        <div class="sensor-label">Power</div>
+                        <div class="sensor-value">1200W</div>
+                    </div>
+                    <div class="sensor">
+                        <div class="sensor-icon">📊</div>
+                        <div class="sensor-label">Today</div>
+                        <div class="sensor-value">6.8 kWh</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zone 3 -->
+            <div class="zone-card">
+                <div class="zone-header">
+                    <div class="zone-name">🛏️ Master Bedroom</div>
+                    <div class="zone-status status-on">On</div>
+                </div>
+
+                <div class="thermostat">
+                    <div class="temp-display">
+                        <div class="current-temp">22.8°C</div>
+                        <div class="temp-label">Current</div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn btn-minus">−</button>
+                        <div class="setpoint">22°C</div>
+                        <button class="btn btn-plus">+</button>
+                        <button class="btn btn-toggle">OFF</button>
+                    </div>
+                </div>
+
+                <div class="sensors">
+                    <div class="sensor">
+                        <div class="sensor-icon">🌡️</div>
+                        <div class="sensor-label">Temperature</div>
+                        <div class="sensor-value">22.8°C</div>
+                    </div>
+                    <div class="sensor window-closed">
+                        <div class="sensor-icon">🪟</div>
+                        <div class="sensor-label">Window</div>
+                        <div class="sensor-value window-status">Closed</div>
+                    </div>
+                    <div class="sensor power-active">
+                        <div class="sensor-icon">⚡</div>
+                        <div class="sensor-label">Power</div>
+                        <div class="sensor-value">920W</div>
+                    </div>
+                    <div class="sensor">
+                        <div class="sensor-icon">📊</div>
+                        <div class="sensor-label">Today</div>
+                        <div class="sensor-value">5.1 kWh</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zone 4 -->
+            <div class="zone-card">
+                <div class="zone-header">
+                    <div class="zone-name">👥 Guest Room</div>
+                    <div class="zone-status status-off">Off</div>
+                </div>
+
+                <div class="thermostat">
+                    <div class="temp-display">
+                        <div class="current-temp">26.1°C</div>
+                        <div class="temp-label">Current</div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn btn-minus">−</button>
+                        <div class="setpoint">24°C</div>
+                        <button class="btn btn-plus">+</button>
+                        <button class="btn btn-toggle" style="background: #4caf50;">ON</button>
+                    </div>
+                </div>
+
+                <div class="sensors">
+                    <div class="sensor">
+                        <div class="sensor-icon">🌡️</div>
+                        <div class="sensor-label">Temperature</div>
+                        <div class="sensor-value">26.1°C</div>
+                    </div>
+                    <div class="sensor window-closed">
+                        <div class="sensor-icon">🪟</div>
+                        <div class="sensor-label">Window</div>
+                        <div class="sensor-value window-status">Closed</div>
+                    </div>
+                    <div class="sensor power-inactive">
+                        <div class="sensor-icon">⚡</div>
+                        <div class="sensor-label">Power</div>
+                        <div class="sensor-value">0W</div>
+                    </div>
+                    <div class="sensor">
+                        <div class="sensor-icon">📊</div>
+                        <div class="sensor-label">Today</div>
+                        <div class="sensor-value">0.0 kWh</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zone 5 -->
+            <div class="zone-card">
+                <div class="zone-header">
+                    <div class="zone-name">💼 Office</div>
+                    <div class="zone-status status-cooling">Cooling</div>
+                </div>
+
+                <div class="thermostat">
+                    <div class="temp-display">
+                        <div class="current-temp">23.0°C</div>
+                        <div class="temp-label">Current</div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn btn-minus">−</button>
+                        <div class="setpoint">21°C</div>
+                        <button class="btn btn-plus">+</button>
+                        <button class="btn btn-toggle">OFF</button>
+                    </div>
+                </div>
+
+                <div class="sensors">
+                    <div class="sensor">
+                        <div class="sensor-icon">🌡️</div>
+                        <div class="sensor-label">Temperature</div>
+                        <div class="sensor-value">23.0°C</div>
+                    </div>
+                    <div class="sensor window-closed">
+                        <div class="sensor-icon">🪟</div>
+                        <div class="sensor-label">Window</div>
+                        <div class="sensor-value window-status">Closed</div>
+                    </div>
+                    <div class="sensor power-active">
+                        <div class="sensor-icon">⚡</div>
+                        <div class="sensor-label">Power</div>
+                        <div class="sensor-value">1050W</div>
+                    </div>
+                    <div class="sensor">
+                        <div class="sensor-icon">📊</div>
+                        <div class="sensor-label">Today</div>
+                        <div class="sensor-value">7.2 kWh</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zone 6 -->
+            <div class="zone-card">
+                <div class="zone-header">
+                    <div class="zone-name">🧺 Laundry</div>
+                    <div class="zone-status status-off">Off</div>
+                </div>
+
+                <div class="thermostat">
+                    <div class="temp-display">
+                        <div class="current-temp">27.5°C</div>
+                        <div class="temp-label">Current</div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn btn-minus">−</button>
+                        <div class="setpoint">23°C</div>
+                        <button class="btn btn-plus">+</button>
+                        <button class="btn btn-toggle" style="background: #4caf50;">ON</button>
+                    </div>
+                </div>
+
+                <div class="sensors">
+                    <div class="sensor">
+                        <div class="sensor-icon">🌡️</div>
+                        <div class="sensor-label">Temperature</div>
+                        <div class="sensor-value">27.5°C</div>
+                    </div>
+                    <div class="sensor window-open">
+                        <div class="sensor-icon">🪟</div>
+                        <div class="sensor-label">Window</div>
+                        <div class="sensor-value window-status">Open</div>
+                    </div>
+                    <div class="sensor power-inactive">
+                        <div class="sensor-icon">⚡</div>
+                        <div class="sensor-label">Power</div>
+                        <div class="sensor-value">0W</div>
+                    </div>
+                    <div class="sensor">
+                        <div class="sensor-icon">📊</div>
+                        <div class="sensor-label">Today</div>
+                        <div class="sensor-value">0.0 kWh</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Energy Statistics -->
+        <div style="background: white; border-radius: 15px; padding: 25px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);">
+            <h2 style="color: #333; margin-bottom: 20px; font-size: 1.5em;">⚡ Energy Consumption</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; padding: 20px; text-align: center;">
+                    <div style="font-size: 0.9em; opacity: 0.9; margin-bottom: 10px;">Total Power Now</div>
+                    <div style="font-size: 2.5em; font-weight: bold;">5.02 kW</div>
+                    <div style="font-size: 0.85em; opacity: 0.8; margin-top: 8px;">5 units active</div>
+                </div>
+
+                <div style="background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 12px; padding: 20px;">
+                    <div style="font-size: 0.9em; color: #666; margin-bottom: 10px;">Today's Usage</div>
+                    <div style="font-size: 2.5em; font-weight: bold; color: #f57c00;">29.5 kWh</div>
+                    <div style="font-size: 0.85em; color: #999; margin-top: 8px;">Since 12:00 AM</div>
+                </div>
+
+                <div style="background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 12px; padding: 20px;">
+                    <div style="font-size: 0.9em; color: #666; margin-bottom: 10px;">This Month</div>
+                    <div style="font-size: 2.5em; font-weight: bold; color: #1565c0;">847 kWh</div>
+                    <div style="font-size: 0.85em; color: #999; margin-top: 8px;">Avg: 28.2 kWh/day</div>
+                </div>
+
+                <div style="background: #f3e5f5; border-left: 4px solid #9c27b0; border-radius: 12px; padding: 20px;">
+                    <div style="font-size: 0.9em; color: #666; margin-bottom: 10px;">Highest Consumption</div>
+                    <div style="font-size: 2.5em; font-weight: bold; color: #6a1b9a;">Living Room</div>
+                    <div style="font-size: 0.85em; color: #999; margin-top: 8px;">6.8 kWh today</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Automations Section -->
+        <div class="automations">
+            <h2>⚙️ Active Automations</h2>
+            <div class="automation-list">
+                <div class="automation-item">
+                    <div class="automation-text">
+                        <div class="automation-name">Auto Off - Window Open</div>
+                        <div class="automation-desc">Turn off AC units when windows open in any zone</div>
+                    </div>
+                    <div class="toggle-switch active"></div>
+                </div>
+
+                <div class="automation-item">
+                    <div class="automation-text">
+                        <div class="automation-name">Smart Temperature Control</div>
+                        <div class="automation-desc">Adjust setpoint based on outside temperature</div>
+                    </div>
+                    <div class="toggle-switch active"></div>
+                </div>
+
+                <div class="automation-item">
+                    <div class="automation-text">
+                        <div class="automation-name">Temperature Deviation Alert</div>
+                        <div class="automation-desc">Notify if zone temp deviates from setpoint</div>
+                    </div>
+                    <div class="toggle-switch active"></div>
+                </div>
+
+                <div class="automation-item">
+                    <div class="automation-text">
+                        <div class="automation-name">All Windows Open Safety</div>
+                        <div class="automation-desc">Turn off all ACs if all windows are open</div>
+                    </div>
+                    <div class="toggle-switch"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Clima v0.1.0 • Multi-Zone AC Controller for Home Assistant</p>
+        </div>
+    </div>
+
+    <script>
+        // Mode switching
+        function switchMode(btn, mode) {
+            const card = btn.closest('.zone-card');
+            const modeButtons = card.querySelectorAll('.mode-btn');
+            const statusDiv = card.querySelector('.zone-status');
+
+            modeButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (mode === 'cooling') {
+                statusDiv.textContent = '❄️ Cooling';
+                statusDiv.className = 'zone-status status-cooling';
+            } else if (mode === 'heating') {
+                statusDiv.textContent = '🔥 Heating';
+                statusDiv.className = 'zone-status status-heating';
+            }
+        }
+
+        // Make buttons interactive
+        document.querySelectorAll('.btn-plus').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const setpoint = this.parentElement.querySelector('.setpoint');
+                const current = parseFloat(setpoint.textContent);
+                setpoint.textContent = (current + 1).toFixed(0) + '°C';
+            });
+        });
+
+        document.querySelectorAll('.btn-minus').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const setpoint = this.parentElement.querySelector('.setpoint');
+                const current = parseFloat(setpoint.textContent);
+                setpoint.textContent = (current - 1).toFixed(0) + '°C';
+            });
+        });
+
+        document.querySelectorAll('.btn-toggle').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.textContent === 'OFF') {
+                    this.textContent = 'ON';
+                    this.style.background = '#4caf50';
+                    const card = this.closest('.zone-card');
+                    const status = card.querySelector('.zone-status');
+                    const modeBtn = card.querySelector('.mode-btn.active');
+                    if (modeBtn.classList.contains('heating')) {
+                        status.textContent = '🔥 Heating';
+                        status.className = 'zone-status status-heating';
+                    } else {
+                        status.textContent = '❄️ Cooling';
+                        status.className = 'zone-status status-cooling';
+                    }
+                } else {
+                    this.textContent = 'OFF';
+                    this.style.background = '#667eea';
+                    this.closest('.zone-card').querySelector('.zone-status').textContent = 'Off';
+                    this.closest('.zone-card').querySelector('.zone-status').className = 'zone-status status-off';
+                }
+            });
+        });
+
+        document.querySelectorAll('.toggle-switch').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                this.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+</html>

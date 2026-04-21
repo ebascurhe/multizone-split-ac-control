@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clima - Setup Wizard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .wizard-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .wizard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .wizard-header h1 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .wizard-header p {
+            opacity: 0.9;
+            font-size: 0.95em;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            height: 4px;
+            margin-top: 15px;
+        }
+
+        .progress-fill {
+            background: white;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .wizard-content {
+            padding: 40px;
+            min-height: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .step-description {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95em;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 8px;
+            color: #999;
+            font-size: 0.85em;
+        }
+
+        .zone-card {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .zone-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+
+        .zone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .zone-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .zone-emoji {
+            font-size: 1.5em;
+        }
+
+        .zone-name-display {
+            color: #667eea;
+        }
+
+        .remove-zone-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85em;
+            transition: all 0.3s;
+        }
+
+        .remove-zone-btn:hover {
+            background: #d32f2f;
+        }
+
+        .required {
+            color: #f44336;
+        }
+
+        .add-zone-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .add-zone-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .zones-list {
+            margin-bottom: 30px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 40px;
+            justify-content: space-between;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .review-section {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .review-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .review-value {
+            font-size: 1em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .success-icon {
+            text-align: center;
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .success-message {
+            text-align: center;
+            color: #333;
+        }
+
+        .success-message h2 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            color: #4caf50;
+        }
+
+        .success-message p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .help-text {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #1565c0;
+        }
+
+        .step-indicator {
+            text-align: center;
+            color: #999;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+
+        .step-indicator strong {
+            color: #667eea;
+        }
+
+        @media (max-width: 600px) {
+            .wizard-content {
+                padding: 25px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .step-title {
+                font-size: 1.3em;
+            }
+
+            .zone-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .remove-zone-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="wizard-card">
+            <div class="wizard-header">
+                <h1>🌡️ Clima Setup</h1>
+                <p>Multi-Zone AC Controller Configuration</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="wizard-content">
+                <!-- Step 0: Welcome -->
+                <div class="step active" id="step-welcome">
+                    <div class="step-title">Welcome to Clima</div>
+                    <div class="step-description">
+                        This setup wizard will guide you through configuring your multi-zone AC system. You'll need to:
+                    </div>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                        <div style="margin-bottom: 15px;">✓ Have your Midea AC units connected</div>
+                        <div style="margin-bottom: 15px;">✓ Have Zigbee window sensors installed</div>
+                        <div style="margin-bottom: 15px;">✓ Have BLE temperature sensors configured</div>
+                        <div>✓ Know your entity IDs (find them in Settings → Devices & Services → Entities)</div>
+                    </div>
+                    <div class="step-description">
+                        Let's get started! You can add as many zones as you need.
+                    </div>
+                </div>
+
+                <!-- Step 1: Configuration -->
+                <div class="step" id="step-config">
+                    <div class="step-indicator">Configuration</div>
+                    <div class="step-title">Configure Your Zones</div>
+                    <div class="step-description">
+                        Add your AC zones one by one. Click "Add Zone" to create a new one.
+                    </div>
+
+                    <div class="help-text">
+                        💡 Start with one zone and add more as needed. Each zone needs an AC unit, temperature sensor, and window sensor.
+                    </div>
+
+                    <!-- Outside Temperature -->
+                    <div style="background: #f8f9fa; border: 2px solid #e0e0e0; border-radius: 10px; padding: 20px; margin-bottom: 30px;">
+                        <h3 style="margin-bottom: 15px; color: #333;">📍 Outside Temperature (Optional)</h3>
+                        <div class="form-group">
+                            <label for="outside-temp">Outside Temperature Sensor</label>
+                            <select id="outside-temp" onchange="updateOutsideTemp(this.value)">
+                                <option value="">-- Not configured --</option>
+                                <option value="sensor.outdoor_temp">sensor.outdoor_temp</option>
+                                <option value="sensor.weather_temperature">sensor.weather_temperature</option>
+                                <option value="sensor.openweathermap_temperature">sensor.openweathermap_temperature</option>
+                                <option value="custom">Custom entity...</option>
+                            </select>
+                            <small>This sensor will be used for smart temperature adjustments</small>
+                        </div>
+
+                        <div id="custom-outside-input" style="display: none;">
+                            <div class="form-group">
+                                <label for="custom-outside">Custom Entity ID</label>
+                                <input type="text" id="custom-outside" placeholder="sensor.my_outdoor_temperature" onchange="updateOutsideTemp('custom')">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Zones -->
+                    <h3 style="margin-bottom: 15px; margin-top: 30px; color: #333;">🌡️ AC Zones</h3>
+                    <div class="zones-list" id="zones-list"></div>
+
+                    <!-- Add Zone Button -->
+                    <button class="add-zone-btn" onclick="addZone()">+ Add Zone</button>
+                </div>
+
+                <!-- Step 2: Review -->
+                <div class="step" id="step-review">
+                    <div class="step-indicator">Final Step</div>
+                    <div class="step-title">Review Configuration</div>
+                    <div class="step-description">
+                        Please review your configuration before finishing.
+                    </div>
+
+                    <div id="review-content"></div>
+                </div>
+
+                <!-- Step 3: Success -->
+                <div class="step" id="step-success">
+                    <div class="success-icon">✅</div>
+                    <div class="success-message">
+                        <h2>Setup Complete!</h2>
+                        <p>Your Clima integration is now configured and ready to use.</p>
+                        <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                            <strong style="color: #2e7d32;">Next Steps:</strong>
+                            <div style="margin-top: 10px; color: #1b5e20; font-size: 0.95em;">
+                                ✓ Create a dashboard with your zone controls<br>
+                                ✓ Set up automations for smart control<br>
+                                ✓ Customize temperature settings per zone
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="button-group">
+                    <button class="btn-secondary" id="btnPrev" onclick="previousStep()" style="display: none;">← Back</button>
+                    <button class="btn-primary" id="btnNext" onclick="nextStep()">Next →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        const zones = {};
+        let zoneCounter = 0;
+        let outsideTemp = '';
+
+        const zoneEmojis = ['🛏️', '🪑', '🛏️', '👥', '💼', '🧺', '🎮', '🍳', '🛁', '📚', '⚽', '🌿'];
+        const zoneNames = ['Bedroom', 'Living Room', 'Master Bedroom', 'Guest Room', 'Office', 'Laundry', 'Gaming Room', 'Kitchen', 'Bathroom', 'Library', 'Gym', 'Garden'];
+
+        function addZone() {
+            zoneCounter++;
+            const zoneId = `zone_${zoneCounter}`;
+            const emoji = zoneEmojis[(zoneCounter - 1) % zoneEmojis.length];
+            const defaultName = zoneNames[(zoneCounter - 1) % zoneNames.length];
+
+            zones[zoneId] = {
+                id: zoneId,
+                name: defaultName,
+                emoji: emoji,
+                ac: '',
+                temp: '',
+                window: ''
+            };
+
+            renderZone(zoneId);
+        }
+
+        function renderZone(zoneId) {
+            const zone = zones[zoneId];
+            const zonesList = document.getElementById('zones-list');
+
+            let zoneHTML = document.getElementById(`zone-card-${zoneId}`);
+
+            if (!zoneHTML) {
+                zoneHTML = document.createElement('div');
+                zoneHTML.id = `zone-card-${zoneId}`;
+                zonesList.appendChild(zoneHTML);
+            }
+
+            zoneHTML.innerHTML = `
+                <div class="zone-card">
+                    <div class="zone-header">
+                        <div class="zone-title">
+                            <span class="zone-emoji">${zone.emoji}</span>
+                            <span>Zone <span class="zone-name-display" id="zone-name-${zoneId}">${zone.name}</span></span>
+                        </div>
+                        <button class="remove-zone-btn" onclick="removeZone('${zoneId}')">Remove</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="zone-name-${zoneId}-input">Zone Name</label>
+                        <input type="text" id="zone-name-${zoneId}-input" value="${zone.name}"
+                               onchange="updateZoneName('${zoneId}', this.value)"
+                               placeholder="e.g., Bedroom">
+                        <small>Friendly name for this zone</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="zone${zoneId}-ac">AC Unit <span class="required">*</span></label>
+                        <select id="zone${zoneId}-ac" onchange="updateZoneField('${zoneId}', 'ac', this.value); handleCustom(this, 'custom-ac-${zoneId}')" required>
+                            <option value="">-- Select AC Unit --</option>
+                            <option value="climate.${zone.name.toLowerCase().replace(/\s+/g, '_')}_ac">climate.${zone.name.toLowerCase().replace(/\s+/g, '_')}_ac</option>
+                            <option value="climate.midea_${zone.name.toLowerCase().replace(/\s+/g, '_')}">climate.midea_${zone.name.toLowerCase().replace(/\s+/g, '_')}</option>
+                            <option value="custom">Custom entity...</option>
+                        </select>
+                        <small>The climate entity controlling the AC unit</small>
+                    </div>
+
+                    <div class="form-group" id="custom-ac-${zoneId}" style="display: none;">
+                        <label for="custom-ac-input-${zoneId}">Custom AC Entity ID</label>
+                        <input type="text" id="custom-ac-input-${zoneId}" placeholder="climate.my_ac_unit"
+                               onchange="updateZoneField('${zoneId}', 'ac', this.value)">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="zone${zoneId}-temp">Temperature Sensor <span class="required">*</span></label>
+                        <select id="zone${zoneId}-temp" onchange="updateZoneField('${zoneId}', 'temp', this.value); handleCustom(this, 'custom-temp-${zoneId}')" required>
+                            <option value="">-- Select Sensor --</option>
+                            <option value="sensor.${zone.name.toLowerCase().replace(/\s+/g, '_')}_temperature">sensor.${zone.name.toLowerCase().replace(/\s+/g, '_')}_temperature</option>
+                            <option value="sensor.${zone.name.toLowerCase().replace(/\s+/g, '_')}_temp">sensor.${zone.name.toLowerCase().replace(/\s+/g, '_')}_temp</option>
+                            <option value="custom">Custom entity...</option>
+                        </select>
+                        <small>BLE temperature sensor for this zone</small>
+                    </div>
+
+                    <div class="form-group" id="custom-temp-${zoneId}" style="display: none;">
+                        <label for="custom-temp-input-${zoneId}">Custom Temperature Entity ID</label>
+                        <input type="text" id="custom-temp-input-${zoneId}" placeholder="sensor.my_temperature"
+                               onchange="updateZoneField('${zoneId}', 'temp', this.value)">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="zone${zoneId}-window">Window Sensor <span class="required">*</span></label>
+                        <select id="zone${zoneId}-window" onchange="updateZoneField('${zoneId}', 'window', this.value); handleCustom(this, 'custom-window-${zoneId}')" required>
+                            <option value="">-- Select Sensor --</option>
+                            <option value="binary_sensor.${zone.name.toLowerCase().replace(/\s+/g, '_')}_window">binary_sensor.${zone.name.toLowerCase().replace(/\s+/g, '_')}_window</option>
+                            <option value="binary_sensor.${zone.name.toLowerCase().replace(/\s+/g, '_')}_door">binary_sensor.${zone.name.toLowerCase().replace(/\s+/g, '_')}_door</option>
+                            <option value="custom">Custom entity...</option>
+                        </select>
+                        <small>Zigbee window/door contact sensor for this zone</small>
+                    </div>
+
+                    <div class="form-group" id="custom-window-${zoneId}" style="display: none;">
+                        <label for="custom-window-input-${zoneId}">Custom Window Entity ID</label>
+                        <input type="text" id="custom-window-input-${zoneId}" placeholder="binary_sensor.my_window"
+                               onchange="updateZoneField('${zoneId}', 'window', this.value)">
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateZoneName(zoneId, name) {
+            zones[zoneId].name = name;
+            document.getElementById(`zone-name-${zoneId}`).textContent = name;
+        }
+
+        function updateZoneField(zoneId, field, value) {
+            zones[zoneId][field] = value;
+        }
+
+        function removeZone(zoneId) {
+            delete zones[zoneId];
+            const card = document.getElementById(`zone-card-${zoneId}`);
+            if (card) card.remove();
+        }
+
+        function handleCustom(selectElement, customElementId) {
+            const customElement = document.getElementById(customElementId);
+            if (selectElement.value === 'custom') {
+                customElement.style.display = 'block';
+            } else {
+                customElement.style.display = 'none';
+            }
+        }
+
+        function updateOutsideTemp(value) {
+            if (value === 'custom') {
+                document.getElementById('custom-outside-input').style.display = 'block';
+                outsideTemp = document.getElementById('custom-outside').value;
+            } else {
+                document.getElementById('custom-outside-input').style.display = 'none';
+                outsideTemp = value;
+            }
+        }
+
+        function updateStep() {
+            const steps = document.querySelectorAll('.step');
+            steps.forEach((step, idx) => {
+                step.classList.toggle('active', idx === currentStep);
+            });
+
+            // Update progress
+            const progress = ((currentStep + 1) / 4) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            // Update buttons
+            document.getElementById('btnPrev').style.display = currentStep === 0 ? 'none' : 'block';
+
+            if (currentStep === 2) {
+                document.getElementById('btnNext').textContent = 'Finish';
+            } else if (currentStep === 3) {
+                document.getElementById('btnNext').textContent = 'Done';
+            } else {
+                document.getElementById('btnNext').textContent = 'Next →';
+            }
+        }
+
+        function nextStep() {
+            if (currentStep === 0) {
+                currentStep = 1;
+                // Add first zone automatically
+                if (Object.keys(zones).length === 0) {
+                    addZone();
+                }
+            } else if (currentStep === 1) {
+                // Validate at least one zone
+                if (Object.keys(zones).length === 0) {
+                    alert('Please add at least one zone');
+                    return;
+                }
+                generateReview();
+                currentStep = 2;
+            } else if (currentStep === 2) {
+                currentStep = 3;
+            } else if (currentStep === 3) {
+                alert('Configuration saved!\n\nNow create a dashboard with your Clima zones.');
+                return;
+            }
+            updateStep();
+        }
+
+        function previousStep() {
+            if (currentStep > 0) {
+                currentStep--;
+            }
+            updateStep();
+        }
+
+        function generateReview() {
+            const reviewContent = document.getElementById('review-content');
+            let html = '';
+
+            html += `<div class="review-section">
+                <div class="review-label">Total Zones</div>
+                <div class="review-value">${Object.keys(zones).length}</div>
+            </div>`;
+
+            if (outsideTemp) {
+                html += `<div class="review-section">
+                    <div class="review-label">Outside Temperature Sensor</div>
+                    <div class="review-value">${outsideTemp}</div>
+                </div>`;
+            }
+
+            Object.keys(zones).forEach((zoneId) => {
+                const zone = zones[zoneId];
+                html += `
+                    <div class="review-section">
+                        <div class="review-label">${zone.emoji} ${zone.name}</div>
+                        <div style="margin-top: 8px;">
+                            <div><strong>AC Unit:</strong> ${zone.ac || '❌ Not set'}</div>
+                            <div><strong>Temp Sensor:</strong> ${zone.temp || '❌ Not set'}</div>
+                            <div><strong>Window Sensor:</strong> ${zone.window || '❌ Not set'}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            reviewContent.innerHTML = html;
+        }
+
+        // Initialize
+        updateStep();
+    </script>
+</body>
+</html>

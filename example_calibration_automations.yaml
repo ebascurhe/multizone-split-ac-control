@@ -1,0 +1,318 @@
+# Temperature Calibration Automations for Clima
+# These automations enable the smart calibration system to learn and adjust AC setpoints
+
+# ==========================================
+# CALIBRATION LEARNING CYCLE
+# ==========================================
+
+# Main calibration loop - Every 30 seconds
+- id: calibration_learning_cycle
+  alias: "Calibration: Learning cycle (every 30s)"
+  trigger:
+    platform: time_pattern
+    seconds: "/30"
+  condition:
+    - condition: state
+      entity_id: input_boolean.calibration_learning_enabled
+      state: "on"
+  action:
+    # For each zone, compare AC setpoint with external sensor
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.bedroom_ac
+      data:
+        temperature: |
+          {%- set external_temp = states('sensor.bedroom_temperature') | float -%}
+          {%- set setpoint = state_attr('climate.bedroom_ac', 'temperature') | float -%}
+          {%- set offset = state_attr('clima.bedroom_calibration', 'offset') | float(0) -%}
+          {%- set adjusted = external_temp + offset -%}
+          {{ [16, adjusted, 30] | map(float) | list | min | max }}
+
+# ==========================================
+# CALIBRATION LEARNING - BEDROOM
+# ==========================================
+
+# Record bedroom offset every minute
+- id: calibration_record_bedroom
+  alias: "Calibration: Record bedroom offset"
+  trigger:
+    platform: time_pattern
+    minutes: "/1"
+  condition:
+    - condition: state
+      entity_id: input_boolean.calibration_learning_enabled
+      state: "on"
+    - condition: state
+      entity_id: climate.bedroom_ac
+      state: "heating"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.bedroom_ac
+      data:
+        # Auto-adjust setpoint based on learned offset
+        temperature: |
+          {%- set target = states('input_number.bedroom_target') | float(22) -%}
+          {%- set current_offset = state_attr('climate.bedroom_ac', 'current_offset') | float(0) -%}
+          {%- set external = states('sensor.bedroom_temperature') | float -%}
+          {%- set diff = target - external -%}
+          {%- if diff | abs > 0.5 -%}
+            {{ target + current_offset }}
+          {%- else -%}
+            {{ state_attr('climate.bedroom_ac', 'temperature') | float }}
+          {%- endif %}
+
+# ==========================================
+# CALIBRATION LEARNING - LIVING ROOM
+# ==========================================
+
+# Record living room offset every minute
+- id: calibration_record_living_room
+  alias: "Calibration: Record living room offset"
+  trigger:
+    platform: time_pattern
+    minutes: "/1"
+  condition:
+    - condition: state
+      entity_id: input_boolean.calibration_learning_enabled
+      state: "on"
+    - condition: state
+      entity_id: climate.living_room_ac
+      state:
+        - "cooling"
+        - "heating"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.living_room_ac
+      data:
+        temperature: |
+          {%- set target = states('input_number.living_room_target') | float(22) -%}
+          {%- set current_offset = state_attr('climate.living_room_ac', 'current_offset') | float(0) -%}
+          {%- set external = states('sensor.living_room_temperature') | float -%}
+          {%- set diff = target - external -%}
+          {%- if diff | abs > 0.5 -%}
+            {{ target + current_offset }}
+          {%- else -%}
+            {{ state_attr('climate.living_room_ac', 'temperature') | float }}
+          {%- endif %}
+
+# ==========================================
+# CALIBRATION LEARNING - MASTER BEDROOM
+# ==========================================
+
+- id: calibration_record_master
+  alias: "Calibration: Record master bedroom offset"
+  trigger:
+    platform: time_pattern
+    minutes: "/1"
+  condition:
+    - condition: state
+      entity_id: input_boolean.calibration_learning_enabled
+      state: "on"
+    - condition: state
+      entity_id: climate.master_bedroom_ac
+      state:
+        - "cooling"
+        - "heating"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.master_bedroom_ac
+      data:
+        temperature: |
+          {%- set target = states('input_number.master_target') | float(21) -%}
+          {%- set current_offset = state_attr('climate.master_bedroom_ac', 'current_offset') | float(0) -%}
+          {%- set external = states('sensor.master_bedroom_temperature') | float -%}
+          {%- set diff = target - external -%}
+          {%- if diff | abs > 0.5 -%}
+            {{ target + current_offset }}
+          {%- else -%}
+            {{ state_attr('climate.master_bedroom_ac', 'temperature') | float }}
+          {%- endif %}
+
+# ==========================================
+# CALIBRATION LEARNING - OFFICE
+# ==========================================
+
+- id: calibration_record_office
+  alias: "Calibration: Record office offset"
+  trigger:
+    platform: time_pattern
+    minutes: "/1"
+  condition:
+    - condition: state
+      entity_id: input_boolean.calibration_learning_enabled
+      state: "on"
+    - condition: state
+      entity_id: climate.office_ac
+      state:
+        - "cooling"
+        - "heating"
+  action:
+    - service: climate.set_temperature
+      target:
+        entity_id: climate.office_ac
+      data:
+        temperature: |
+          {%- set target = states('input_number.office_target') | float(21) -%}
+          {%- set current_offset = state_attr('climate.office_ac', 'current_offset') | float(0) -%}
+          {%- set external = states('sensor.office_temperature') | float -%}
+          {%- set diff = target - external -%}
+          {%- if diff | abs > 0.5 -%}
+            {{ target + current_offset }}
+          {%- else -%}
+            {{ state_attr('climate.office_ac', 'temperature') | float }}
+          {%- endif %}
+
+# ==========================================
+# CALIBRATION ALERTS
+# ==========================================
+
+# Alert if calibration data suggests problem
+- id: calibration_alert_divergence
+  alias: "Calibration: Alert on high divergence"
+  trigger:
+    platform: template
+    value_template: |
+      {%- set bedroom_offset = state_attr('climate.bedroom_ac', 'current_offset') | float(0) | abs -%}
+      {%- set living_offset = state_attr('climate.living_room_ac', 'current_offset') | float(0) | abs -%}
+      {%- set master_offset = state_attr('climate.master_bedroom_ac', 'current_offset') | float(0) | abs -%}
+      {%- set office_offset = state_attr('climate.office_ac', 'current_offset') | float(0) | abs -%}
+      {{ bedroom_offset > 2.5 or living_offset > 2.5 or master_offset > 2.5 or office_offset > 2.5 }}
+  action:
+    - service: notify.notify
+      data:
+        title: "⚠️ Calibration Alert"
+        message: |
+          A zone has large temperature offset (>2.5°C).
+          This may indicate:
+          - Sensor malfunction
+          - AC unit problem
+          - Sensor placement issue
+
+          Check sensor positioning and AC unit status.
+
+# Alert when calibration is complete
+- id: calibration_alert_complete
+  alias: "Calibration: Alert when stable"
+  trigger:
+    platform: numeric_state
+    entity_id:
+      - sensor.bedroom_calibration_variance
+      - sensor.living_room_calibration_variance
+    below: 0.5
+    for:
+      minutes: 10
+  action:
+    - service: notify.notify
+      data:
+        title: "✅ Calibration Complete"
+        message: |
+          {{ trigger.entity_id.split('_')[0] | title }} calibration is now stable.
+
+          You can now lock the calibration to prevent further learning.
+          Consider enabling automatic temperature adjustment.
+
+# ==========================================
+# CALIBRATION STATUS TRACKING
+# ==========================================
+
+# Update calibration status helper
+- id: calibration_update_status
+  alias: "Calibration: Update status"
+  trigger:
+    platform: time_pattern
+    minutes: "/5"
+  action:
+    - service: input_text.set_value
+      target:
+        entity_id: input_text.calibration_status
+      data:
+        value: |
+          Bedroom: {{ state_attr('climate.bedroom_ac', 'current_offset') | round(1) }}°C
+          Living: {{ state_attr('climate.living_room_ac', 'current_offset') | round(1) }}°C
+          Master: {{ state_attr('climate.master_bedroom_ac', 'current_offset') | round(1) }}°C
+          Office: {{ state_attr('climate.office_ac', 'current_offset') | round(1) }}°C
+
+# ==========================================
+# CALIBRATION PERIODIC RESET
+# ==========================================
+
+# Quarterly recalibration reminder
+- id: calibration_seasonal_reminder
+  alias: "Calibration: Quarterly reminder"
+  trigger:
+    platform: time
+    at: "06:00:00"
+  condition:
+    - condition: template
+      value_template: |
+        {%- set last_recal = states('sensor.last_recalibration_date') -%}
+        {%- set days_ago = (now() - as_datetime(last_recal)).days -%}
+        {{ days_ago > 90 }}
+  action:
+    - service: notify.notify
+      data:
+        title: "🔄 Quarterly Calibration Check"
+        message: |
+          It's been {{ (now() - as_datetime(states('sensor.last_recalibration_date'))).days }} days
+          since your last calibration.
+
+          Consider resetting calibrations and relearning for seasonal changes.
+
+# ==========================================
+# TEMPERATURE SETPOINT HELPERS
+# ==========================================
+
+# These automations show how to use calibration with target helpers
+# Create these input_number helpers in Home Assistant
+
+- id: calibration_example_bedroom_target
+  alias: "Calibration Example: Bedroom target (DO NOT USE)"
+  description: "Example showing calibration with target temperature helper"
+  # To use: Create input_number.bedroom_target helper with min: 16, max: 30
+  # This automation is for reference - use actual helpers in your setup
+
+# ==========================================
+# CALIBRATION DEBUG MODE
+# ==========================================
+
+# Log calibration data for debugging
+- id: calibration_debug_log
+  alias: "Calibration: Debug logging"
+  trigger:
+    platform: time_pattern
+    hours: "*/2"
+  condition:
+    - condition: state
+      entity_id: input_boolean.calibration_debug_mode
+      state: "on"
+  action:
+    - service: logger.set_level
+      data:
+        clima: debug
+    - service: notify.notify
+      data:
+        message: |
+          📊 Calibration Debug Data:
+
+          Bedroom:
+            Setpoint: {{ state_attr('climate.bedroom_ac', 'temperature') }}°C
+            External: {{ states('sensor.bedroom_temperature') }}°C
+            Offset: {{ state_attr('climate.bedroom_ac', 'current_offset') }}°C
+
+          Living Room:
+            Setpoint: {{ state_attr('climate.living_room_ac', 'temperature') }}°C
+            External: {{ states('sensor.living_room_temperature') }}°C
+            Offset: {{ state_attr('climate.living_room_ac', 'current_offset') }}°C
+
+          Master Bedroom:
+            Setpoint: {{ state_attr('climate.master_bedroom_ac', 'temperature') }}°C
+            External: {{ states('sensor.master_bedroom_temperature') }}°C
+            Offset: {{ state_attr('climate.master_bedroom_ac', 'current_offset') }}°C
+
+          Office:
+            Setpoint: {{ state_attr('climate.office_ac', 'temperature') }}°C
+            External: {{ states('sensor.office_temperature') }}°C
+            Offset: {{ state_attr('climate.office_ac', 'current_offset') }}°C

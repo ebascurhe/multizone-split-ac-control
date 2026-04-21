@@ -1,0 +1,51 @@
+# Example Lovelace Dashboard for Clima
+# Add this to your dashboard configuration
+
+title: Climate Control
+views:
+  - title: Zone Overview
+    cards:
+      # Zone 1
+      - type: vertical-stack
+        cards:
+          - type: heading
+            heading: "Zone 1: Bedroom"
+
+          - type: thermostat
+            entity: climate.zone_1_ac  # Update with your entity
+
+          - type: horizontal-stack
+            cards:
+              - type: sensor
+                entity: sensor.zone_1_temperature  # BLE sensor
+                name: "Current Temp"
+
+              - type: sensor
+                entity: binary_sensor.zone_1_window  # Zigbee sensor
+                name: "Window Status"
+
+      # Zone 2
+      - type: vertical-stack
+        cards:
+          - type: heading
+            heading: "Zone 2: Living Room"
+
+          - type: thermostat
+            entity: climate.zone_2_ac
+
+          - type: horizontal-stack
+            cards:
+              - type: sensor
+                entity: sensor.zone_2_temperature
+                name: "Current Temp"
+
+              - type: sensor
+                entity: binary_sensor.zone_2_window
+                name: "Window Status"
+
+      # Repeat for zones 3-6...
+
+      # Outside Temperature
+      - type: sensor
+        entity: sensor.outside_temperature  # Update with your sensor
+        name: "Outside Temperature"
