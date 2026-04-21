@@ -326,6 +326,6 @@ That's all you need to get started. Clima will:
 
 ---
 
-**Version**: 0.1.0  
-**Last Updated**: 2026-04-20  
+**Version**: 0.2.0  
+**Last Updated**: 2026-04-21  
 **Status**: ✅ Ready for Home Assistant

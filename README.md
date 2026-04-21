@@ -185,6 +185,14 @@ For issues and feature requests, please open an issue on [GitHub](https://github
 
 ## Changelog
 
+### 0.2.0 (Dashboard & Security Update)
+
+- ✨ **Main Dashboard Hub** - Home Assistant-style sidebar navigation
+- 📊 **Multiple Dashboards** - Calibration, Overview, Heating, Schedules, Energy
+- 🔒 **Security Improvements** - Input validation and entity verification
+- 🐛 **Bug Fixes** - Config flow errors and import issues fixed
+- 📖 **Better Documentation** - Updated guides for new dashboard features
+
 ### 0.1.0 (Initial Release)
 
 - Multi-zone AC control

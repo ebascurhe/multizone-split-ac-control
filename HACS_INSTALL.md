@@ -84,8 +84,8 @@ git push origin v0.1.0
 
 # Or use GitHub UI:
 # Releases → Create new release
-# Tag: v0.1.0
-# Title: Clima v0.1.0 - Initial Release
+# Tag: v0.2.0
+# Title: Clima v0.2.0 - Dashboard & Security Update
 # Description: [copy from README.md]
 ```
 
@@ -143,7 +143,7 @@ clima/
 - [ ] `manifest.json` in `custom_components/clima/`
 - [ ] `README.md` with clear description
 - [ ] `LICENSE` file (MIT included)
-- [ ] Version tag created (v0.1.0)
+- [ ] Version tag created (v0.2.0)
 - [ ] Release notes written
 
 ---
