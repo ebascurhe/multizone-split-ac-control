@@ -138,9 +138,40 @@ Input Number: {zone}_calibration_offset
   Min: -5, Max: 5, Step: 0.1, Icon: plus-minus, Initial: 0
 ```
 
+## 📊 Access Your Dashboards
+
+### Main Dashboard (Recommended)
+
+Open the main hub with sidebar navigation:
+```
+http://your-home-assistant-ip:8123/local/index.html
+```
+
+This gives you access to all Clima features through an intuitive, organized interface.
+
+### Individual Dashboards
+
+Or access specific dashboards directly:
+
+| Dashboard | Purpose | URL |
+|-----------|---------|-----|
+| Calibration | Temperature offset learning | `/local/calibration_dashboard.html` |
+| Overview | Real-time zone monitoring | `/local/dashboard_preview.html` |
+| Heating | Winter heating mode | `/local/dashboard_heating.html` |
+| Schedules | Temperature scheduling | `/local/schedules.html` |
+| Energy | Energy analytics | `/local/energy_analytics.html` |
+
+---
+
 ## 📋 Next Steps
 
-### 1. Create Automations
+### 1. Open Main Dashboard
+
+1. Go to: `http://your-ha-ip:8123/local/index.html`
+2. Explore the sidebar navigation
+3. Visit each dashboard to get familiar with features
+
+### 2. Create Automations
 
 Copy automations to your `automations.yaml`:
 
@@ -163,24 +194,6 @@ cat /Users/estebanbascur/claude/projects/clima/example_heating_automations.yaml 
 ```
 
 Then restart Home Assistant again.
-
-### 2. Open Calibration Dashboard
-
-Copy dashboard file:
-```bash
-cp /Users/estebanbascur/claude/projects/clima/calibration_dashboard.html \
-   ~/.homeassistant/www/
-```
-
-Access at:
-```
-http://your-home-assistant-ip:8123/local/calibration_dashboard.html
-```
-
-Or view locally:
-```bash
-open /Users/estebanbascur/claude/projects/clima/calibration_dashboard.html
-```
 
 ### 3. Enable Calibration Learning
 
@@ -218,20 +231,32 @@ Settings → Developer Tools → States
 ```
 Search for `input_` to see helpers.
 
-## 🚀 Advanced: Copy All Dashboards
+## 🚀 Dashboard Files Included
 
-Want all the dashboards available locally?
+All dashboard files are included:
 
-```bash
-# Copy all dashboards to Home Assistant www folder
-cp /Users/estebanbascur/claude/projects/clima/*.html ~/.homeassistant/www/
+```
+clima/
+├── index.html                      Main hub with sidebar navigation
+├── calibration_dashboard.html       Temperature calibration management
+├── dashboard_preview.html           Zone overview and real-time monitoring
+├── dashboard_heating.html           Winter heating mode controls
+├── schedules.html                  Temperature scheduling interface
+├── energy_analytics.html            Energy consumption analytics
+```
 
-# Access them at:
-# http://your-ha-ip:8123/local/calibration_dashboard.html
-# http://your-ha-ip:8123/local/dashboard_preview.html
-# http://your-ha-ip:8123/local/dashboard_heating.html
-# http://your-ha-ip:8123/local/schedules.html
-# http://your-ha-ip:8123/local/energy_analytics.html
+**No manual copying needed!** HACS automatically places these in your `www` folder.
+
+### Direct Access
+
+After HACS installation, access dashboards at:
+```
+http://your-ha-ip:8123/local/index.html                    (Main Hub)
+http://your-ha-ip:8123/local/calibration_dashboard.html   (Calibration)
+http://your-ha-ip:8123/local/dashboard_preview.html       (Overview)
+http://your-ha-ip:8123/local/dashboard_heating.html       (Heating)
+http://your-ha-ip:8123/local/schedules.html               (Schedules)
+http://your-ha-ip:8123/local/energy_analytics.html        (Energy)
 ```
 
 ## 🔍 Troubleshooting

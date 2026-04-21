@@ -31,9 +31,22 @@ Settings → System → Restart Home Assistant
 
 Wait 2-3 minutes for restart.
 
-### Step 4: Done! ✅
+### Step 4: Access Your Dashboards
 
-Clima is now installed and will auto-discover your AC units.
+Once installed, access the main dashboard at:
+```
+http://your-home-assistant-ip:8123/local/index.html
+```
+
+This home screen provides navigation to all Clima features.
+
+### Step 5: Done! ✅
+
+Clima is now installed and will:
+- ✅ Auto-discover your AC units
+- ✅ Create helper entities for each zone
+- ✅ Make dashboards available
+- ✅ Register control services
 
 ---
 
@@ -104,10 +117,16 @@ clima/
 │       ├── manifest.json         ✅ Metadata
 │       ├── strings.json          ✅ Translations
 │       └── calibration.py        ✅ Calibration engine
-├── hacs.json                      ✅ HACS config (NEW)
+├── index.html                     ✅ Main dashboard hub
+├── calibration_dashboard.html     ✅ Calibration dashboard
+├── dashboard_preview.html         ✅ Overview dashboard
+├── dashboard_heating.html         ✅ Heating mode dashboard
+├── schedules.html                 ✅ Schedules dashboard
+├── energy_analytics.html          ✅ Energy analytics dashboard
+├── hacs.json                      ✅ HACS config
 ├── README.md                      ✅ Documentation
 ├── LICENSE                        ✅ MIT License
-├── QUICK_START.md                ✅ Setup guide
+├── QUICK_START.md                ✅ Quick start guide
 ├── CALIBRATION.md                ✅ Calibration docs
 ├── MODES.md                       ✅ Heating/cooling modes
 ├── SCHEDULES.md                  ✅ Scheduling guide
@@ -137,6 +156,21 @@ Once in HACS, users can install with just 4 clicks:
 2. Search **Clima**
 3. Click result → **Download**
 4. **Settings** → **System** → **Restart**
+
+Then access the dashboard:
+```
+http://your-ha-ip:8123/local/index.html
+```
+
+### Dashboard Features
+
+- **Sidebar Navigation** - Easy access to all features
+- **Home Overview** - Features and quick stats
+- **Calibration** - Temperature offset management
+- **Overview** - Real-time zone monitoring
+- **Heating** - Winter mode controls
+- **Schedules** - Temperature scheduling
+- **Energy** - Energy analytics
 
 ---
 

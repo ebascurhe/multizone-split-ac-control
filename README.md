@@ -8,9 +8,11 @@ A Home Assistant custom integration for managing multiple independent AC units a
 🌡️ **Temperature Monitoring** - Track temperature from BLE sensors per zone
 🪟 **Window Detection** - Automatically detect open windows via Zigbee sensors
 📊 **Outside Temperature** - Factor in external temperature for smart control
-📱 **Dashboard UI** - Intuitive Lovelace dashboard for zone management
+📱 **Dashboard UI** - Intuitive dashboards with Home Assistant-style sidebar navigation
 🔄 **Automations** - Pre-built automation examples for common scenarios
 🌐 **WiFi Based** - Works with Midea and other WiFi-connected AC units
+📈 **Smart Calibration** - Automatic temperature offset learning and adjustment
+⚡ **Energy Tracking** - Monitor energy consumption and efficiency
 
 ## Requirements
 
@@ -71,15 +73,39 @@ Outside:
 
 ## Dashboard Setup
 
-1. Create a new dashboard in **Settings → Dashboards**
-2. Copy the YAML from `example_lovelace_dashboard.yaml`
-3. Customize zone names and entity IDs to match your setup
+Clima includes a main dashboard with Home Assistant-style sidebar navigation that provides access to all features.
 
-### Dashboard Cards
+### Main Dashboard (index.html)
 
-- **Thermostat Card** - Control temperature setpoint
-- **Sensor Cards** - Display current temperature and window status
-- **Toggle Cards** - Quick on/off controls
+Access the main hub at:
+```
+http://your-home-assistant-ip:8123/local/index.html
+```
+
+Features:
+- 🎯 **Home** - Overview and feature highlights
+- 🌡️ **Calibration** - Temperature offset learning and adjustment
+- 📊 **Overview** - Real-time monitoring of all zones
+- 🔥 **Heating** - Winter heating mode controls
+- ⏰ **Schedules** - Automated temperature scheduling
+- ⚡ **Energy** - Energy consumption analytics
+
+### Available Dashboards
+
+- **index.html** - Main hub with sidebar navigation
+- **calibration_dashboard.html** - Temperature calibration management
+- **dashboard_preview.html** - Zone overview and monitoring
+- **dashboard_heating.html** - Winter heating mode controls
+- **schedules.html** - Temperature scheduling interface
+- **energy_analytics.html** - Energy tracking and analysis
+
+### Custom Lovelace Dashboard
+
+To create a custom Home Assistant Lovelace dashboard:
+1. Go to **Settings → Dashboards**
+2. Click **Create Dashboard**
+3. Use the card editor to add climate, sensor, and input entities
+4. Customize layout to match your preferences
 
 ## Automations
 
