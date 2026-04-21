@@ -297,9 +297,161 @@
                 font-size: 1.8em;
             }
         }
-    </style>
-    <link rel="stylesheet" href="sidebar.css">
-    <script src="sidebar.js"></script>
+    
+
+        /* Clima Sidebar Navigation Styles */
+/* Clima Sidebar Navigation Styles */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #212121;
+}
+
+.clima-container {
+    display: flex;
+    min-height: 100vh;
+    background: #f5f5f5;
+}
+
+/* Sidebar */
+.clima-sidebar {
+    width: 256px;
+    background: #ffffff;
+    border-right: 1px solid #e0e0e0;
+    padding: 16px 0;
+    overflow-y: auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+}
+
+.clima-sidebar-header {
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.clima-sidebar-icon {
+    font-size: 28px;
+}
+
+.clima-nav {
+    list-style: none;
+}
+
+.clima-nav-item {
+    padding: 0 8px;
+    margin-bottom: 8px;
+}
+
+.clima-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: #424242;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.clima-nav-link:hover {
+    background: #f5f5f5;
+    color: #212121;
+}
+
+.clima-nav-link.active {
+    background: #fff3e0;
+    color: #ff6b6b;
+}
+
+.clima-nav-icon {
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+/* Main content area adjustment */
+.clima-main {
+    flex: 1;
+    margin-left: 256px;
+    padding: 24px;
+}
+
+/* Scrollbar styling */
+.clima-sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.clima-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.clima-sidebar::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.clima-sidebar::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .clima-sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        max-height: 120px;
+        display: flex;
+        overflow-x: auto;
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .clima-sidebar-header {
+        margin-bottom: 0;
+        border-bottom: none;
+        padding: 8px 12px;
+        margin-right: 24px;
+    }
+
+    .clima-nav {
+        display: flex;
+        flex: 1;
+    }
+
+    .clima-nav-item {
+        margin-bottom: 0;
+        margin-right: 8px;
+    }
+
+    .clima-main {
+        margin-left: 0;
+        padding: 16px;
+    }
+}
+
+</style>
 </head>
 <body>
     <div class="clima-container">
@@ -613,5 +765,83 @@
 
         </div>
     </div>
+    <script>
+// Clima Sidebar Navigation Script
+
+/**
+ * Initialize the Clima sidebar navigation
+ * Call this function when the page loads
+ */
+function initClimaNavigation() {
+    const navLinks = document.querySelectorAll('.clima-nav-link');
+
+    // Set active link based on current page
+    const currentPage = getCurrentPageName();
+    navLinks.forEach(link => {
+        const linkPage = link.getAttribute('data-page');
+        if (linkPage === currentPage) {
+            link.classList.add('active');
+        } else {
+            link.classList.remove('active');
+        }
+    });
+
+    // Add click handlers to navigation links
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const page = link.getAttribute('data-page');
+            if (page && page !== 'current') {
+                navigateToPage(page);
+            }
+        });
+    });
+}
+
+/**
+ * Get the current page name from the URL
+ */
+function getCurrentPageName() {
+    const href = window.location.href;
+    const filename = href.substring(href.lastIndexOf('/') + 1).replace('.html', '');
+    return filename || 'index';
+}
+
+/**
+ * Navigate to a different dashboard page
+ */
+function navigateToPage(page) {
+    const pages = {
+        'index': 'index.html',
+        'calibration': 'calibration_dashboard.html',
+        'overview': 'dashboard_preview.html',
+        'heating': 'dashboard_heating.html',
+        'schedules': 'schedules.html',
+        'energy': 'energy_analytics.html'
+    };
+
+    if (pages[page]) {
+        window.location.href = pages[page];
+    }
+}
+
+/**
+ * Update the active nav link
+ */
+function setActiveNavLink(pageName) {
+    const navLinks = document.querySelectorAll('.clima-nav-link');
+    navLinks.forEach(link => {
+        const linkPage = link.getAttribute('data-page');
+        if (linkPage === pageName) {
+            link.classList.add('active');
+        } else {
+            link.classList.remove('active');
+        }
+    });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', initClimaNavigation);
+
+    </script>
 </body>
 </html>
