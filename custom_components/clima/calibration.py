@@ -4,9 +4,9 @@ import json
 from datetime import datetime, timedelta
 from typing import Dict, Optional
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.storage import STORAGE_VERSION
 
 STORAGE_KEY = "clima_calibration"
+STORAGE_VERSION = 1
 CALIBRATION_VERSION = 1
 
 
