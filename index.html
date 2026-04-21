@@ -330,8 +330,27 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="sidebar.css">
+    <script src="sidebar.js"></script>
 </head>
 <body>
+    <div class="clima-container">
+    <nav class="clima-sidebar">
+        <div class="clima-sidebar-header">
+            <span class="clima-sidebar-icon">❄️</span>
+            <span>Clima</span>
+        </div>
+        <ul class="clima-nav">
+            <li class="clima-nav-item"><a class="clima-nav-link" data-page="index"><span class="clima-nav-icon">🏠</span>Home</a></li>
+            <li class="clima-nav-item"><a class="clima-nav-link" data-page="calibration"><span class="clima-nav-icon">🌡️</span>Calibration</a></li>
+            <li class="clima-nav-item"><a class="clima-nav-link" data-page="overview"><span class="clima-nav-icon">📊</span>Overview</a></li>
+            <li class="clima-nav-item"><a class="clima-nav-link" data-page="heating"><span class="clima-nav-icon">🔥</span>Heating</a></li>
+            <li class="clima-nav-item"><a class="clima-nav-link" data-page="schedules"><span class="clima-nav-icon">⏰</span>Schedules</a></li>
+            <li class="clima-nav-item"><a class="clima-nav-link" data-page="energy"><span class="clima-nav-icon">⚡</span>Energy</a></li>
+        </ul>
+    </nav>
+
+        <div class="clima-main">
     <!-- Sidebar -->
     <nav class="sidebar">
         <div class="sidebar-header">
@@ -506,5 +525,8 @@
             }
         });
     </script>
+
+        </div>
+    </div>
 </body>
 </html>
