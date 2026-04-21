@@ -32,36 +32,37 @@ class ClimaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             # Validate selected outside temperature sensor if provided
             outside_temp = user_input.get(CONF_OUTSIDE_TEMP, "")
-            if outside_temp and not self._entity_exists(outside_temp, "sensor"):
-                errors["base"] = "invalid_entity"
-                return self.async_show_form(
-                    step_id="user",
-                    data_schema=vol.Schema(
-                        {
-                            vol.Optional(
-                                CONF_OUTSIDE_TEMP,
-                                description={"suggested_value": outside_temp},
-                            ): selector.EntitySelector(
-                                selector.EntitySelectorConfig(domain="sensor")
-                            ),
-                        }
-                    ),
-                    errors=errors,
-                    description_placeholders={
-                        "zones_info": "Invalid outside temperature sensor selected"
-                    },
-                )
+            try:
+                if outside_temp and not self._entity_exists(outside_temp, "sensor"):
+                    errors["base"] = "invalid_entity"
+                    return self.async_show_form(
+                        step_id="user",
+                        data_schema=vol.Schema(
+                            {
+                                vol.Optional(
+                                    CONF_OUTSIDE_TEMP,
+                                    description={"suggested_value": outside_temp},
+                                ): selector.EntitySelector(
+                                    selector.EntitySelectorConfig(domain="sensor")
+                                ),
+                            }
+                        ),
+                        errors=errors,
+                        description_placeholders={
+                            "zones_info": "Invalid outside temperature sensor selected"
+                        },
+                    )
+            except Exception:
+                # If validation fails, allow the entry anyway
+                # The integration will validate at runtime
+                pass
 
             return self.async_create_entry(
                 title="Clima AC Controller",
                 data=user_input,
             )
 
-        # Get available entities
-        climate_entities = self._get_climate_entities()
-        sensor_entities = self._get_sensor_entities()
-        binary_sensor_entities = self._get_binary_sensor_entities()
-
+        # Create data schema for outside temperature selector
         data_schema = vol.Schema(
             {
                 vol.Optional(
@@ -110,45 +111,6 @@ class ClimaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return state is not None
 
         return False
-
-    def _get_climate_entities(self) -> Dict[str, str]:
-        """Get available climate entities."""
-        entities = {}
-        hass = self.hass
-        if hass:
-            state = hass.states.all()
-            for entity in state:
-                if entity.entity_id.startswith("climate."):
-                    entities[entity.entity_id] = entity.attributes.get(
-                        "friendly_name", entity.entity_id
-                    )
-        return entities
-
-    def _get_sensor_entities(self) -> Dict[str, str]:
-        """Get available temperature sensor entities."""
-        entities = {}
-        hass = self.hass
-        if hass:
-            state = hass.states.all()
-            for entity in state:
-                if entity.entity_id.startswith("sensor."):
-                    entities[entity.entity_id] = entity.attributes.get(
-                        "friendly_name", entity.entity_id
-                    )
-        return entities
-
-    def _get_binary_sensor_entities(self) -> Dict[str, str]:
-        """Get available binary sensor entities."""
-        entities = {}
-        hass = self.hass
-        if hass:
-            state = hass.states.all()
-            for entity in state:
-                if entity.entity_id.startswith("binary_sensor."):
-                    entities[entity.entity_id] = entity.attributes.get(
-                        "friendly_name", entity.entity_id
-                    )
-        return entities
 
     @staticmethod
     @callback
