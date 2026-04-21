@@ -143,7 +143,7 @@ async def _create_helper_entities(hass: HomeAssistant, zones: Dict[str, Dict]) -
         )
         _LOGGER.debug("✓ Created: input_boolean.calibration_learning_enabled")
     except Exception as e:
-        _LOGGER.debug(f"  (Skipped learning boolean: {e})")
+        _LOGGER.debug(f"  (Skipped learning boolean: already exists or error: {type(e).__name__})")
 
     try:
         await hass.services.async_call(
@@ -158,7 +158,7 @@ async def _create_helper_entities(hass: HomeAssistant, zones: Dict[str, Dict]) -
         )
         _LOGGER.debug("✓ Created: input_text.calibration_status")
     except Exception as e:
-        _LOGGER.debug(f"  (Skipped calibration status: {e})")
+        _LOGGER.debug(f"  (Skipped calibration status: already exists or error: {type(e).__name__})")
 
     try:
         await hass.services.async_call(
@@ -179,7 +179,7 @@ async def _create_helper_entities(hass: HomeAssistant, zones: Dict[str, Dict]) -
         )
         _LOGGER.debug("✓ Created: input_number.calibration_tolerance")
     except Exception as e:
-        _LOGGER.debug(f"  (Skipped calibration tolerance: {e})")
+        _LOGGER.debug(f"  (Skipped calibration tolerance: already exists or error: {type(e).__name__})")
 
     # Create per-zone helper entities
     for zone_id, zone_info in zones.items():
@@ -206,7 +206,7 @@ async def _create_helper_entities(hass: HomeAssistant, zones: Dict[str, Dict]) -
             )
             _LOGGER.debug(f"✓ Created: input_number.{object_id}")
         except Exception as e:
-            _LOGGER.debug(f"  (Skipped {zone_name} target: {e})")
+            _LOGGER.debug(f"  (Skipped {zone_name} target: {type(e).__name__})")
 
         # Create calibration locked toggle
         try:
@@ -224,7 +224,7 @@ async def _create_helper_entities(hass: HomeAssistant, zones: Dict[str, Dict]) -
             )
             _LOGGER.debug(f"✓ Created: input_boolean.{object_id}")
         except Exception as e:
-            _LOGGER.debug(f"  (Skipped {zone_name} lock: {e})")
+            _LOGGER.debug(f"  (Skipped {zone_name} lock: {type(e).__name__})")
 
         # Create calibration offset sensor for tracking
         try:
@@ -247,7 +247,7 @@ async def _create_helper_entities(hass: HomeAssistant, zones: Dict[str, Dict]) -
             )
             _LOGGER.debug(f"✓ Created: input_number.{object_id}")
         except Exception as e:
-            _LOGGER.debug(f"  (Skipped {zone_name} offset: {e})")
+            _LOGGER.debug(f"  (Skipped {zone_name} offset: {type(e).__name__})")
 
     _LOGGER.info(f"✅ Created helpers for {len(zones)} zone(s)")
 
@@ -256,11 +256,38 @@ async def _handle_set_zone_temp(call: ServiceCall) -> None:
     """Handle set zone temperature service call."""
     zone_id = call.data.get("zone_id")
     temperature = call.data.get("temperature")
-    _LOGGER.info(f"Setting zone {zone_id} to {temperature}°C")
+
+    # Validate inputs
+    if not zone_id or not isinstance(zone_id, str):
+        _LOGGER.error(f"Invalid service call: zone_id must be a string, got {zone_id}")
+        return
+
+    try:
+        temp_value = float(temperature)
+    except (TypeError, ValueError):
+        _LOGGER.error(f"Invalid service call: temperature must be numeric, got {temperature}")
+        return
+
+    # Validate temperature range
+    if not 16 <= temp_value <= 30:
+        _LOGGER.error(f"Invalid temperature {temp_value}°C: must be between 16-30°C")
+        return
+
+    _LOGGER.info(f"Setting zone {zone_id} to {temp_value}°C")
 
 
 async def _handle_toggle_zone(call: ServiceCall) -> None:
     """Handle toggle zone service call."""
     zone_id = call.data.get("zone_id")
     enabled = call.data.get("enabled")
+
+    # Validate inputs
+    if not zone_id or not isinstance(zone_id, str):
+        _LOGGER.error(f"Invalid service call: zone_id must be a string, got {zone_id}")
+        return
+
+    if not isinstance(enabled, bool):
+        _LOGGER.error(f"Invalid service call: enabled must be boolean, got {enabled}")
+        return
+
     _LOGGER.info(f"Toggling zone {zone_id} to {enabled}")

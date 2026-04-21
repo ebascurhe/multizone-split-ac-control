@@ -30,6 +30,28 @@ class ClimaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: Dict[str, str] = {}
 
         if user_input is not None:
+            # Validate selected outside temperature sensor if provided
+            outside_temp = user_input.get(CONF_OUTSIDE_TEMP, "")
+            if outside_temp and not self._entity_exists(outside_temp, "sensor"):
+                errors["base"] = "invalid_entity"
+                return self.async_show_form(
+                    step_id="user",
+                    data_schema=vol.Schema(
+                        {
+                            vol.Optional(
+                                CONF_OUTSIDE_TEMP,
+                                description={"suggested_value": outside_temp},
+                            ): selector.EntitySelector(
+                                selector.EntitySelectorConfig(domain="sensor")
+                            ),
+                        }
+                    ),
+                    errors=errors,
+                    description_placeholders={
+                        "zones_info": "Invalid outside temperature sensor selected"
+                    },
+                )
+
             return self.async_create_entry(
                 title="Clima AC Controller",
                 data=user_input,
@@ -74,12 +96,27 @@ class ClimaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # This will be handled by async_step_user for now
         return self.async_abort(reason="single_instance_allowed")
 
+    def _entity_exists(self, entity_id: str, domain: str) -> bool:
+        """Check if an entity exists and matches the expected domain."""
+        if not entity_id or not isinstance(entity_id, str):
+            return False
+
+        if not entity_id.startswith(f"{domain}."):
+            return False
+
+        hass = self.hass
+        if hass:
+            state = hass.states.get(entity_id)
+            return state is not None
+
+        return False
+
     def _get_climate_entities(self) -> Dict[str, str]:
         """Get available climate entities."""
         entities = {}
         hass = self.hass
         if hass:
-            state = hass.states.async_all()
+            state = hass.states.all()
             for entity in state:
                 if entity.entity_id.startswith("climate."):
                     entities[entity.entity_id] = entity.attributes.get(
@@ -92,7 +129,7 @@ class ClimaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         entities = {}
         hass = self.hass
         if hass:
-            state = hass.states.async_all()
+            state = hass.states.all()
             for entity in state:
                 if entity.entity_id.startswith("sensor."):
                     entities[entity.entity_id] = entity.attributes.get(
@@ -105,7 +142,7 @@ class ClimaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         entities = {}
         hass = self.hass
         if hass:
-            state = hass.states.async_all()
+            state = hass.states.all()
             for entity in state:
                 if entity.entity_id.startswith("binary_sensor."):
                     entities[entity.entity_id] = entity.attributes.get(
